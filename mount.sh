@@ -1,0 +1,1 @@
+hdiutil attach -mountpoint ./zeos zeos.dmg
