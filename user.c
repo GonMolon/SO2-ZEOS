@@ -9,17 +9,19 @@ long inner(long n) {
     long suma;
     suma = 0;
     for(i=0; i<n; i++) {
-        suma = suma + i; return suma;
+        suma = suma + i; 
     }
+    return suma;
 }
 
 long outer(long n) {
     int i;
     long acum;
     acum = 0;
-    for(i=0; i<n; i++) acum = acum + inner(i){
-        return acum;
+    for(i=0; i<n; i++) {
+        acum = acum + inner(i)
     }
+    return acum;
 }
 
 int __attribute__ ((__section__(".text.main"))) main(void) {
