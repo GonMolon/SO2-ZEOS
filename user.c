@@ -19,7 +19,7 @@ long outer(long n) {
     long acum;
     acum = 0;
     for(i=0; i<n; i++) {
-        acum = acum + inner(i)
+        acum = acum + inner(i);
     }
     return acum;
 }

@@ -1,5 +1,11 @@
 bochsout.txt
+
 .fseventsd/
 .fuse_hidden*
+
 *.s
 *.o
+
+bootsect
+build
+system
