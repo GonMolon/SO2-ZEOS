@@ -37,14 +37,14 @@
 #include <fcntl.h>
 
 /* Don't touch these, unless you really know what you're doing. */
-#define DEF_INITSEG	0x9000
-#define DEF_SYSSEG	0x1000
+#define DEF_INITSEG		0x9000
+#define DEF_SYSSEG		0x1000
 #define DEF_SETUPSEG	0x9020
-#define DEF_SYSSIZE	0x7F00
+#define DEF_SYSSIZE		0x7F00
 
 typedef unsigned char byte;
 typedef unsigned short word;
-typedef  u_int32_t u32;
+typedef u_int32_t u32;
 
 #define DEFAULT_MAJOR_ROOT 0
 #define DEFAULT_MINOR_ROOT 0
@@ -54,8 +54,7 @@ typedef  u_int32_t u32;
 byte buf[1024];
 int fd;
 
-void die(const char * str, ...)
-{
+void die(const char* str, ...) {
 	va_list args;
 	va_start(args, str);
 	vfprintf(stderr, str, args);
@@ -67,38 +66,35 @@ void die(const char * str, ...)
 
 #define MINIX_HEADER_LEN 32
 
-void minix_open(const char *name)
-{
-	static byte hdr[] = { 0x01, 0x03, 0x10, 0x04, 0x20, 0x00, 0x00, 0x00 };
-	static u32 *lb = (u32 *) buf;
+void minix_open(const char* name) {
+	static byte hdr[] = {0x01, 0x03, 0x10, 0x04, 0x20, 0x00, 0x00, 0x00};
+	static u32* lb = (u32*) buf;
 
-	if ((fd = open(name, O_RDONLY, 0)) < 0)
+	if((fd = open(name, O_RDONLY, 0)) < 0)
 		die("Unable to open `%s': %m", name);
-	if (read(fd, buf, MINIX_HEADER_LEN) != MINIX_HEADER_LEN)
+	if(read(fd, buf, MINIX_HEADER_LEN) != MINIX_HEADER_LEN)
 		die("%s: Unable to read header", name);
-	if (memcmp(buf, hdr, sizeof(hdr)) || lb[5])
+	if(memcmp(buf, hdr, sizeof(hdr)) || lb[5])
 		die("%s: Non-Minix header", name);
-	if (lb[3])
+	if(lb[3])
 		die("%s: Illegal data segment", name);
-	if (lb[4])
+	if(lb[4])
 		die("%s: Illegal bss segment", name);
-	if (lb[7])
+	if(lb[7])
 		die("%s: Illegal symbol table", name);
 }
 
-void usage(void)
-{
+void usage(void) {
 	die("Usage: build bootsect system user [> image]");
 }
 
-int main(int argc, char ** argv)
-{
+int main(int argc, char ** argv) {
 	unsigned int i, sz, uz;
 	u32 im_size, sys_size, usr_size;
 	byte major_root, minor_root;
 	struct stat sb;
 
-	if (argc != 4)
+	if(argc != 4)
 		usage();
 	else {
 		major_root = DEFAULT_MAJOR_ROOT;
@@ -108,94 +104,94 @@ int main(int argc, char ** argv)
 	minix_open(argv[1]);				    /* Copy the boot sector */
 	i = read(fd, buf, sizeof(buf));
 	fprintf(stderr,"Boot sector %d bytes.\n",i);
-	if (i != 512)
+	if(i != 512)
 		die("Boot block must be exactly 512 bytes");
-	if (buf[510] != 0x55 || buf[511] != 0xaa)
+	if(buf[510] != 0x55 || buf[511] != 0xaa)
 		die("Boot block hasn't got boot flag (0xAA55)");
 	buf[508] = minor_root;
 	buf[509] = major_root;
-	if (write(1, buf, 512) != 512)
+	if(write(1, buf, 512) != 512)
 		die("Write call failed");
 	close (fd);
 
-	if ((fd = open(argv[2], O_RDONLY, 0)) < 0)	    /* Copy the system itself */
+	if((fd = open(argv[2], O_RDONLY, 0)) < 0)	    /* Copy the system itself */
 		die("Unable to open `%s': %m", argv[2]);
-	if (fstat (fd, &sb))
+	if(fstat (fd, &sb))
 		die("Unable to stat `%s': %m", argv[2]);
 	sys_size = sz = sb.st_size;
 	fprintf (stderr, "System is %d kB\n", sz/1024);
-	while (sz > 0) {
+	while(sz > 0) {
 		int l, n;
 
 		l = (sz > sizeof(buf)) ? sizeof(buf) : sz;
-		if ((n=read(fd, buf, l)) != l) {
-			if (n < 0)
+		if((n=read(fd, buf, l)) != l) {
+			if(n < 0)
 				die("Error reading %s: %m", argv[2]);
 			else
 				die("%s: Unexpected EOF", argv[2]);
 		}
-		if (write(1, buf, l) != l)
+		if(write(1, buf, l) != l)
 			die("Write failed");
 		sz -= l;
 	}
 	close(fd);
 
-	if ((fd = open(argv[3], O_RDONLY, 0)) < 0)    /* Copiamos el user */
+	if((fd = open(argv[3], O_RDONLY, 0)) < 0)    /* Copiamos el user */
 		die("Unable to open `%s': %m", argv[3]);
-	if (fstat (fd, &sb))
+	if(fstat (fd, &sb))
 		die("Unable to stat `%s': %m", argv[3]);
 	usr_size = uz = sb.st_size;
-	fprintf (stderr, "User is %d kB\n", uz/1024);
-	while (uz > 0) {
+	fprintf(stderr, "User is %d kB\n", uz/1024);
+	while(uz > 0) {
 		int l, n;
 
 		l = (uz > sizeof(buf)) ? sizeof(buf) : uz;
-		if ((n=read(fd, buf, l)) != l) {
-			if (n < 0)
+		if((n=read(fd, buf, l)) != l) {
+			if(n < 0)
 				die("Error reading %s: %m", argv[3]);
 			else
 				die("%s: Unexpected EOF", argv[3]);
 		}
-		if (write(1, buf, l) != l)
+		if(write(1, buf, l) != l)
 			die("Write failed");
 		uz -= l;
 	}
 	close(fd);
 
-	if (lseek(1, 500, SEEK_SET) != 500)
+	if(lseek(1, 500, SEEK_SET) != 500)
 		die("Output: seek failed");
 	im_size = (sys_size + usr_size + 15) / 16;
 
-	fprintf (stderr, "Image is %d kB\n", (int)(sys_size + usr_size)/1024);
+	fprintf(stderr, "Image is %d kB\n", (int)(sys_size + usr_size)/1024);
 	buf[0] = (im_size & 0xff);
 	buf[1] = ((im_size >> 8) & 0xff);
-	if (write(1, buf, 2) != 2)
+	if(write(1, buf, 2) != 2)
 		die("Write of image length failed");
 
-      if (lseek(1, 512, SEEK_SET) != 512)
-	  die("Output: seek failed");
+      if(lseek(1, 512, SEEK_SET) != 512)
+	  	die("Output: seek failed");
 	buf[0] = (sys_size & 0xff);
 	buf[1] = ((sys_size >> 8) & 0xff);
 	buf[2] = ((sys_size >> 16) & 0xff);
 	buf[3] = 0;
-	if (write(1, buf, 4) != 4)
+	if(write(1, buf, 4) != 4)
 	  die("Write of system length failed");
 
-      if (lseek(1, 516, SEEK_SET) != 516)
-	  die("Output: seek failed");
+      if(lseek(1, 516, SEEK_SET) != 516)
+	  	die("Output: seek failed");
 	buf[0] = (usr_size & 0xff);
 	buf[1] = ((usr_size >> 8) & 0xff);
 	buf[2] = ((usr_size >> 16) & 0xff);
 	buf[3] = 0;
-	if (write(1, buf, 4) != 4)
+	if(write(1, buf, 4) != 4)
 	  die("Write of user length failed");
-      if (lseek(1, 520, SEEK_SET) != 520)
-	  die("Output: seek failed");
+      if(lseek(1, 520, SEEK_SET) != 520)
+	  	die("Output: seek failed");
 	buf[0] = (0x7E1B & 0xff);
 	buf[1] = ((0x7E1B >> 8) & 0xff);
 	buf[2] = ((0x7E1B >> 16) & 0xff);
 	buf[3] = 0;
-	if (write(1, buf, 4) != 4)
+	if(write(1, buf, 4) != 4)
 	  die("Write of user length failed");
 
 	return 0;					    /* Everything is OK */

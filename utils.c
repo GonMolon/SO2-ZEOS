@@ -3,8 +3,7 @@
 
 #include <mm_address.h>
 
-void copy_data(void *start, void *dest, int size)
-{
+void copy_data(void *start, void *dest, int size) {
   DWord *p = start, *q = dest;
   Byte *p1, *q1;
   while(size > 4) {
@@ -19,8 +18,7 @@ void copy_data(void *start, void *dest, int size)
   }
 }
 /* Copia de espacio de usuario a espacio de kernel, devuelve 0 si ok y -1 si error*/
-int copy_from_user(void *start, void *dest, int size)
-{
+int copy_from_user(void *start, void *dest, int size) {
   DWord *p = start, *q = dest;
   Byte *p1, *q1;
   while(size > 4) {
@@ -36,8 +34,7 @@ int copy_from_user(void *start, void *dest, int size)
   return 0;
 }
 /* Copia de espacio de kernel a espacio de usuario, devuelve 0 si ok y -1 si error*/
-int copy_to_user(void *start, void *dest, int size)
-{
+int copy_to_user(void *start, void *dest, int size) {
   DWord *p = start, *q = dest;
   Byte *p1, *q1;
   while(size > 4) {
@@ -62,23 +59,21 @@ int copy_to_user(void *start, void *dest, int size)
  * Returns true (nonzero) if the memory block may be valid,
  *         false (zero) if it is definitely invalid
  */
-int access_ok(int type, const void * addr, unsigned long size)
-{
+int access_ok(int type, const void * addr, unsigned long size) {
   unsigned long addr_ini, addr_fin;
 
   addr_ini=(((unsigned long)addr)>>12);
   addr_fin=((((unsigned long)addr)+size)>>12);
-  if (addr_fin < addr_ini) return 0; //This looks like an overflow ... deny access
+  if(addr_fin < addr_ini) return 0; //This looks like an overflow ... deny access
 
-  switch(type)
-  {
+  switch(type) {
     case VERIFY_WRITE:
       /* Should suppose no support for automodifyable code */
-      if ((addr_ini>=USER_FIRST_PAGE+NUM_PAG_CODE)&&
+      if((addr_ini>=USER_FIRST_PAGE+NUM_PAG_CODE)&&
           (addr_fin<=USER_FIRST_PAGE+NUM_PAG_CODE+NUM_PAG_DATA))
 	  return 1;
     default:
-      if ((addr_ini>=USER_FIRST_PAGE)&&
+      if((addr_ini>=USER_FIRST_PAGE)&&
   	(addr_fin<=(USER_FIRST_PAGE+NUM_PAG_CODE+NUM_PAG_DATA)))
           return 1;
   }
@@ -105,7 +100,7 @@ int access_ok(int type, const void * addr, unsigned long size)
         __base = (base); \
         asm("":"=a" (__low), "=d" (__high):"A" (n)); \
         __upper = __high; \
-        if (__high) { \
+        if(__high) { \
                 __upper = __high % (__base); \
                 __high = __high / (__base); \
         } \

@@ -12,8 +12,7 @@
 Gate idt[IDT_ENTRIES];
 Register    idtR;
 
-char char_map[] =
-{
+char char_map[] = {
   '\0','\0','1','2','3','4','5','6',
   '7','8','9','0','\'','¡','\0','\0',
   'q','w','e','r','t','y','u','i',
@@ -29,8 +28,7 @@ char char_map[] =
   '\0','\0'
 };
 
-void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
-{
+void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL) {
   /***********************************************************************/
   /* THE INTERRUPTION GATE FLAGS:                          R1: pg. 5-11  */
   /* ***************************                                         */
@@ -49,8 +47,7 @@ void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
   idt[vector].highOffset      = highWord((DWord)handler);
 }
 
-void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
-{
+void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL) {
   /***********************************************************************/
   /* THE TRAP GATE FLAGS:                                  R1: pg. 5-11  */
   /* ********************                                                */
@@ -74,8 +71,7 @@ void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 }
 
 
-void setIdt()
-{
+void setIdt() {
   /* Program interrups/exception service routines */
   idtR.base  = (DWord)idt;
   idtR.limit = IDT_ENTRIES * sizeof(Gate) - 1;
