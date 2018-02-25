@@ -5,6 +5,8 @@ user.out
 .fseventsd/
 .fuse_hidden*
 
+.gdbcmd
+
 *.s
 *.o
 
