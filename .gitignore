@@ -1,4 +1,6 @@
 bochsout.txt
+system.out
+user.out
 
 .fseventsd/
 .fuse_hidden*
@@ -9,3 +11,5 @@ bochsout.txt
 bootsect
 build
 system
+user
+zeos.bin
