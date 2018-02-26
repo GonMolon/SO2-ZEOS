@@ -18,8 +18,7 @@ typedef unsigned long       DWord;
 #define highByte(address) (Byte)(((address) >> (16 + 8)) & 0xFF)
 #define high4Bits(limit) (Byte)(((limit) >> 16) & 0x0F)
 
-typedef struct  /* Segment Descriptor */
-{
+typedef struct {  /* Segment Descriptor */
   Word  limit;
   Word  lowBase;
   Byte  midBase;
@@ -28,16 +27,14 @@ typedef struct  /* Segment Descriptor */
   Byte  highBase;
 } Descriptor;     /* R1: pg. 3-11, 4-3 */
 
-typedef struct /* Gate */
-{
+typedef struct {  /* Gate */
   Word  lowOffset;
   Word  segmentSelector;
   Word  flags;
   Word  highOffset;
 } Gate;     /* R1: pg. 5-11 */
 
-typedef struct              /* TASK STATE SEGMENT      */
-{                           /*                         */
+typedef struct {            /* TASK STATE SEGMENT      */
   Word  PreviousTaskLink;   /* 0          R1: pg. 6-5  */
   Word  none1;              /*                         */
   DWord esp0;               /* 4  \                    */
@@ -81,8 +78,7 @@ typedef struct              /* TASK STATE SEGMENT      */
 
 /** Registers: **/
 /****************/
-typedef struct
-{
+typedef struct {
   Word  limit __attribute__ ((packed));
   DWord base  __attribute__ ((packed));
 } Register; /* GDTR, IDTR */
@@ -133,8 +129,7 @@ typedef Word Selector;
 
 #define NULL 0
 
-typedef union 
-{
+typedef union {
   unsigned int entry;
   struct {    
     unsigned int present  : 1;
