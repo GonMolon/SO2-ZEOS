@@ -17,9 +17,11 @@
 #define ESCRIPTURA 1
 
 int check_fd(int fd, int permissions) {
-  if(fd!=1) return -9; /*EBADF*/
-  if(permissions!=ESCRIPTURA) return -13; /*EACCES*/
-  return 0;
+    if(fd != 1) return -9; /*EBADF*/
+    if(permissions != ESCRIPTURA) {
+        return -13; /*EACCES*/
+    }
+    return 0;
 }
 
 int sys_ni_syscall() {
@@ -31,7 +33,7 @@ int sys_getpid() {
 }
 
 int sys_fork() {
-  int PID=-1;
+  int PID = -1;
 
   // creates the child process
   

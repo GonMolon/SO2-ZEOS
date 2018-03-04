@@ -33,7 +33,7 @@ void printc(char c) {
     DWord screen = 0xb8000 + (y * NUM_COLUMNS + x) * 2;
     if(++x >= NUM_COLUMNS) {
       x = 0;
-      y=(y+1)%NUM_ROWS;
+      y = (y+1)%NUM_ROWS;
     }
     asm("movw %0, (%1)" : : "g"(ch), "g"(screen));
   }
