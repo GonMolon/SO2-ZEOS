@@ -6,6 +6,7 @@
 #include <segment.h>
 #include <hardware.h>
 #include <io.h>
+#include <entry.h>
 
 #include <zeos_interrupt.h>
 
@@ -77,9 +78,25 @@ void setIdt() {
   idtR.limit = IDT_ENTRIES * sizeof(Gate) - 1;
   
   set_handlers();
+  setInterruptHandler(33, keyboard_handler, 0);
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
 
   set_idt_reg(&idtR);
+}
+
+void keyboard_routine() {
+  unsigned char value = inb(0x60);
+  unsigned char position = value & 0b01111111;
+  char action = value >> 7;
+  if(action == 0) {
+    char key;
+    if(position < 98) {
+      key = char_map[position];
+    } else {
+      key = 'C';
+    }
+    printc_xy(0, 0, key);
+  }
 }
 
