@@ -39,6 +39,11 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
     acum = outer(count);
     result = add(1, 2);
     result = add2(1, 2);
-    while(1);
+    if(write(0, 0, 0) == -1) {
+        if(errno == -2) {
+            while(1);
+        }
+    }
+    // while(1);
     return 0;
 }
