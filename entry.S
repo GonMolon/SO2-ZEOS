@@ -83,6 +83,7 @@ ENTRY(system_call_handler)
 error:
     movl    $-ENOSYS, %eax
 end:
+
     movl    %eax, 0x18(%esp)
     RESTORE_ALL
     iret
