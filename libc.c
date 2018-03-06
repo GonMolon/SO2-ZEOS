@@ -6,7 +6,11 @@
 
 #include <types.h>
 
-int errno;
+int errno = 0;
+
+void perror() {
+  
+}
 
 void itoa(int a, char* b) {
   int i, i1;
