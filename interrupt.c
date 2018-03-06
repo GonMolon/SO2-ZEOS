@@ -77,8 +77,14 @@ void setIdt() {
   idtR.base  = (DWord)idt;
   idtR.limit = IDT_ENTRIES * sizeof(Gate) - 1;
   
+  // Exception handlers
   set_handlers();
+
+  // Interrupt handlers
   setInterruptHandler(33, keyboard_handler, 0);
+
+  // System call handler
+  setTrapHandler(0x80, system_call_handler, 3);
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
 
