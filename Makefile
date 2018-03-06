@@ -68,7 +68,12 @@ io.o: io.c $(INCLUDEDIR)/io.h
 
 sched.o: sched.c $(INCLUDEDIR)/sched.h
 
-libc.o: libc.c $(INCLUDEDIR)/libc.h
+libcs.s: libc.S
+	$(CPP) $(ASMFLAGS) -o $@ $<
+
+libc.o: libc.c libcs.o $(INCLUDEDIR)/libc.h
+	$(CC) $(CFLAGS_USER) -c -o libc_aux.o libc.c
+	$(LD) $(LINKFLAGS) -r libc_aux.o libcs.o -o $@
 
 mm.o: mm.c $(INCLUDEDIR)/types.h $(INCLUDEDIR)/mm.h
 
