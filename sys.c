@@ -13,6 +13,8 @@
 
 #include <sched.h>
 
+#include <errno.h>
+
 #define LECTURA 0
 #define ESCRIPTURA 1
 
@@ -25,7 +27,7 @@ int check_fd(int fd, int permissions) {
 }
 
 int sys_ni_syscall() {
-	return -38; /*ENOSYS*/
+	return -ENOSYS; /*ENOSYS*/
 }
 
 int sys_getpid() {
@@ -38,6 +40,10 @@ int sys_fork() {
   // creates the child process
   
   return PID;
+}
+
+int sys_write() {
+  return -2;
 }
 
 void sys_exit() {  
