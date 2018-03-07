@@ -78,7 +78,13 @@ ENTRY(system_call_handler)
     jl      error
     cmpl    $MAX_SYSCALL, %eax
     jge     error
+
+    // pushl   %edx
+    // pushl   %ecx
+    // pushl   %ebx
     call    *sys_call_table(, %eax, 0x04)
+    // addl    $12, %esp
+
     jmp     end
 error:
     movl    $-ENOSYS, %eax

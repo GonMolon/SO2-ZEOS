@@ -9,13 +9,13 @@
 #include <sched.h>
 #include <errno.h>
 
-#define LECTURA 0
-#define ESCRIPTURA 1
+#define READ_OPERATION 0
+#define WRITE_OPERATION 1
 
 int check_fd(int fd, int permissions) {
-    if(fd != 1) return -9; /*EBADF*/
-    if(permissions != ESCRIPTURA) {
-        return -13; /*EACCES*/
+    if(fd != 1) return -EBADF; /*EBADF*/
+    if(permissions != WRITE_OPERATION) {
+        return -EACCES; /*EACCES*/
     }
     return 0;
 }
@@ -36,8 +36,24 @@ int sys_fork() {
   return PID;
 }
 
-int sys_write() {
-  return -2;
+int sys_write(int fd, char* buffer, int size) {
+  int error = check_fd(fd, WRITE_OPERATION);
+  if(error < 0) {
+    return error;
+  }
+  if(buffer == 0) {
+    return -1;
+  }
+  if(size < 0) {
+    return -1;
+  }
+  char buffer_copy[size];
+  error = copy_from_user(buffer, buffer_copy, size);
+  if(error < 0) {
+    return error;
+  }
+  sys_write_console(buffer_copy, size);
+  return 0;
 }
 
 void sys_exit() {  
