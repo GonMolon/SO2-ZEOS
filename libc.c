@@ -9,7 +9,25 @@
 int errno = 0;
 
 void perror() {
-  
+  char* error_message;
+  switch(errno) {
+    case ENOSYS:
+      error_message = "System call not defined";
+      break;
+    case EBADF:
+      error_message = "Bad file descriptor identifier";
+      break;
+    case EACCES:
+      error_message = "Wrong permission writing to file";
+      break;
+    case EBUFFERNULL:
+      error_message = "Buffer addres is null";
+      break;
+    case EBUFFERSIZE:
+      error_message = "Buffer size is equal or less than 0";
+      break;
+  }
+  write(1, error_message, strlen(error_message));
 }
 
 void itoa(int a, char* b) {

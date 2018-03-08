@@ -8,20 +8,21 @@
 #include <mm_address.h>
 #include <sched.h>
 #include <errno.h>
+#include <types.h>
 
 #define READ_OPERATION 0
 #define WRITE_OPERATION 1
 
 int check_fd(int fd, int permissions) {
-    if(fd != 1) return -EBADF; /*EBADF*/
+    if(fd != 1) return EBADF; /*EBADF*/
     if(permissions != WRITE_OPERATION) {
-        return -EACCES; /*EACCES*/
+        return EACCES; /*EACCES*/
     }
     return 0;
 }
 
 int sys_ni_syscall() {
-	return -ENOSYS; /*ENOSYS*/
+	return ENOSYS; /*ENOSYS*/
 }
 
 int sys_getpid() {
@@ -41,11 +42,11 @@ int sys_write(int fd, char* buffer, int size) {
   if(error < 0) {
     return error;
   }
-  if(buffer == 0) {
-    return -1;
+  if(buffer == NULL) {
+    return EBUFFERNULL;
   }
-  if(size < 0) {
-    return -1;
+  if(size <= 0) {
+    return EBUFFERSIZE;
   }
   char buffer_copy[size];
   error = copy_from_user(buffer, buffer_copy, size);
@@ -53,7 +54,7 @@ int sys_write(int fd, char* buffer, int size) {
     return error;
   }
   sys_write_console(buffer_copy, size);
-  return 0;
+  return size;
 }
 
 void sys_exit() {  
