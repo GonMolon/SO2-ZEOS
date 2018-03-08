@@ -39,7 +39,7 @@ TSS tss;
 void init_dir_pages() {
   int i;
 
-  for(i = 0; i< NR_TASKS; i++) {
+  for(i = 0; i < NR_TASKS; i++) {
     dir_pages[i][ENTRY_DIR_PAGES].entry = 0;
     dir_pages[i][ENTRY_DIR_PAGES].bits.pbase_addr = (((unsigned int)&pagusr_table[i]) >> 12);
     dir_pages[i][ENTRY_DIR_PAGES].bits.user = 1;
@@ -51,14 +51,14 @@ void init_dir_pages() {
 
 /* Initializes the page table (kernel pages only) */
 void init_table_pages() {
-  int i,j;
+  int i, j;
   /* reset all entries */
-  for(j=0; j< NR_TASKS; j++) {
-    for(i=0; i<TOTAL_PAGES; i++) {
+  for(j = 0; j < NR_TASKS; j++) {
+    for(i = 0; i < TOTAL_PAGES; i++) {
       pagusr_table[j][i].entry = 0;
     }
     /* Init kernel pages */
-    for(i=1; i<NUM_PAG_KERNEL; i++) { // Leave the page inaccessible to comply with NULL convention
+    for(i = 1; i < NUM_PAG_KERNEL; i++) { // Leave the page inaccessible to comply with NULL convention
       // Logical page equal to physical page (frame)
       pagusr_table[j][i].bits.pbase_addr = i;
       pagusr_table[j][i].bits.rw = 1;
@@ -79,7 +79,7 @@ void set_user_pages( struct task_struct *task ) {
   page_table_entry* process_PT = get_PT(task);
 
   /* CODE */
-  for(pag=0;pag<NUM_PAG_CODE;pag++){
+  for(pag = 0; pag < NUM_PAG_CODE; pag++) {
     new_ph_pag=alloc_frame();
     process_PT[PAG_LOG_INIT_CODE+pag].entry = 0;
     process_PT[PAG_LOG_INIT_CODE+pag].bits.pbase_addr = new_ph_pag;
@@ -88,7 +88,7 @@ void set_user_pages( struct task_struct *task ) {
   }
   
   /* DATA */ 
-  for(pag=0;pag<NUM_PAG_DATA;pag++){
+  for(pag = 0; pag < NUM_PAG_DATA; pag++) {
     new_ph_pag=alloc_frame();
     process_PT[PAG_LOG_INIT_DATA+pag].entry = 0;
     process_PT[PAG_LOG_INIT_DATA+pag].bits.pbase_addr = new_ph_pag;
@@ -186,11 +186,11 @@ void setTSS() {
 int init_frames( void ) {
   int i;
   /* Mark pages as Free */
-  for(i=0; i<TOTAL_PAGES; i++) {
+  for(i = 0; i < TOTAL_PAGES; i++) {
     phys_mem[i] = FREE_FRAME;
   }
   /* Mark kernel pages as Used */
-  for(i=0; i<NUM_PAG_KERNEL; i++) {
+  for(i = 0; i < NUM_PAG_KERNEL; i++) {
     phys_mem[i] = USED_FRAME;
   }
   return 0;
@@ -226,21 +226,21 @@ void free_user_pages(struct task_struct *task) {
 /* free_frame - Mark as FREE_FRAME the frame  'frame'.*/
 void free_frame(unsigned int frame) {
   if((frame > NUM_PAG_KERNEL) && (frame < TOTAL_PAGES))
-    phys_mem[frame]=FREE_FRAME;
+    phys_mem[frame] = FREE_FRAME;
 }
 
 /* set_ss_pag - Associates logical page 'page' with physical page 'frame' */
 void set_ss_pag(page_table_entry* PT, unsigned page, unsigned frame) {
-	PT[page].entry=0;
-	PT[page].bits.pbase_addr=frame;
-	PT[page].bits.user=1;
-	PT[page].bits.rw=1;
-	PT[page].bits.present=1;
+	PT[page].entry = 0;
+	PT[page].bits.pbase_addr = frame;
+	PT[page].bits.user = 1;
+	PT[page].bits.rw = 1;
+	PT[page].bits.present = 1;
 }
 
 /* del_ss_pag - Removes mapping from logical page 'logical_page' */
 void del_ss_pag(page_table_entry* PT, unsigned logical_page) {
-  PT[logical_page].entry=0;
+  PT[logical_page].entry = 0;
 }
 
 /* get_frame - Returns the physical frame associated to page 'logical_page' */
