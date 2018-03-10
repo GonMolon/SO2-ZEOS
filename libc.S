@@ -1,11 +1,14 @@
 #include <asm.h>
 
+#define CONCAT_AUX(A, B) A ## B
+#define CONCAT(A, B) CONCAT_AUX(A, B)
+
 #define UPDATE_ERRNO \
     cmpl    $0, %eax; \
-    jge     else; \
+    jge     CONCAT(else, __LINE__); \
     movl    %eax, errno; \
     movl    $-1, %eax; \
-else:
+    CONCAT(else, __LINE__):
     
 
 ENTRY(write)
