@@ -20,11 +20,11 @@ void perror() {
     case EACCES:
       error_message = "Wrong permission writing to file";
       break;
-    case EBUFFERNULL:
-      error_message = "Buffer addres is null";
-      break;
-    case EBUFFERSIZE:
+    case EINVAL:
       error_message = "Buffer size is equal or less than 0";
+      break;
+    case EBUFFERNULL:
+      error_message = "Buffer address is null";
       break;
   }
   write(1, error_message, strlen(error_message));
