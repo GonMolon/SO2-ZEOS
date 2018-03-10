@@ -1,5 +1,13 @@
 #include <asm.h>
 
+#define UPDATE_ERRNO \
+    cmpl    $0, %eax; \
+    jge     else; \
+    movl    %eax, errno; \
+    movl    $-1, %eax; \
+else:
+    
+
 ENTRY(write)
     pushl   %ebp
     movl    %esp, %ebp
@@ -19,11 +27,7 @@ ENTRY(write)
     int     $0x80
 
     // If result is negative, change it to -1 and update errno
-    cmpl    $0, %eax
-    jge     else
-    movl    %eax, errno
-    movl    $-1, %eax
-else:
+    UPDATE_ERRNO
 
     // Restoring protected register
     popl    %ebx
