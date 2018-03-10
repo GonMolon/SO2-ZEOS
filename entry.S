@@ -94,8 +94,6 @@ ENTRY(clock_handler)
     SAVE_ALL
     EOI
     call    clock_routine
-    // test:
-    // jmp test
     RESTORE_ALL
     iret
 

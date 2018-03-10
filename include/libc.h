@@ -23,6 +23,8 @@ int getpid();
 
 int fork();
 
+unsigned long gettime();
+
 void exit();
 
 #endif  /* __LIBC_H__ */

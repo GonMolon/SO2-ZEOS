@@ -38,3 +38,20 @@ ENTRY(write)
     // Returning
     popl    %ebp
     ret
+
+
+ENTRY(gettime)
+    pushl   %ebp
+    movl    %esp, %ebp
+
+    // Choosing the system call identifier
+    movl    $10, %eax
+
+    // Generating the interrupt to make the system call
+    int     $0x80
+
+    UPDATE_ERRNO
+
+    // Returning
+    popl    %ebp
+    ret

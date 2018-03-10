@@ -9,6 +9,7 @@
 #include <sched.h>
 #include <errno.h>
 #include <types.h>
+#include <system.h>
 
 #define READ_OPERATION 0
 #define WRITE_OPERATION 1
@@ -55,6 +56,10 @@ int sys_write(int fd, char* buffer, int size) {
   }
   sys_write_console(buffer_copy, size);
   return size;
+}
+
+unsigned long sys_gettime() {
+  return zeos_ticks;
 }
 
 void sys_exit() {  
