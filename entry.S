@@ -90,6 +90,14 @@ end:
     RESTORE_ALL
     iret
 
+ENTRY(clock_handler)
+    SAVE_ALL
+    EOI
+    call    clock_routine
+    // test:
+    // jmp test
+    RESTORE_ALL
+    iret
 
 ENTRY(keyboard_handler)
     SAVE_ALL

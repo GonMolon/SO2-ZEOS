@@ -7,6 +7,8 @@
 
 void system_call_handler();
 
+void clock_handler();
+
 void keyboard_handler();
 
 #endif  /* __ENTRY_H__ */
