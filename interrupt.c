@@ -81,6 +81,7 @@ void setIdt() {
   set_handlers();
 
   // Interrupt handlers
+  setInterruptHandler(32, clock_handler, 0);
   setInterruptHandler(33, keyboard_handler, 0);
 
   // System call handler
@@ -89,6 +90,10 @@ void setIdt() {
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
 
   set_idt_reg(&idtR);
+}
+
+void clock_routine() {
+  zeos_show_clock();
 }
 
 void keyboard_routine() {
