@@ -7,6 +7,7 @@
 #include <hardware.h>
 #include <io.h>
 #include <entry.h>
+#include <system.h>
 
 #include <zeos_interrupt.h>
 
@@ -93,6 +94,7 @@ void setIdt() {
 }
 
 void clock_routine() {
+  zeos_ticks++;
   zeos_show_clock();
 }
 
