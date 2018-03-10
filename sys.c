@@ -15,15 +15,15 @@
 #define WRITE_OPERATION 1
 
 int check_fd(int fd, int permissions) {
-    if(fd != 1) return EBADF; /*EBADF*/
+    if(fd != 1) return -EBADF; /*EBADF*/
     if(permissions != WRITE_OPERATION) {
-        return EACCES; /*EACCES*/
+        return -EACCES; /*EACCES*/
     }
     return 0;
 }
 
 int sys_ni_syscall() {
-	return ENOSYS; /*ENOSYS*/
+	return -ENOSYS; /*ENOSYS*/
 }
 
 int sys_getpid() {
@@ -44,10 +44,10 @@ int sys_write(int fd, char* buffer, int size) {
     return error;
   }
   if(buffer == NULL) {
-    return EBUFFERNULL;
+    return -EBUFFERNULL;
   }
-  if(size <= 0) {
-    return EBUFFERSIZE;
+  if(size < 0) {
+    return -EINVAL;
   }
   char buffer_copy[size];
   error = copy_from_user(buffer, buffer_copy, size);

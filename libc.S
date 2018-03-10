@@ -6,6 +6,7 @@
 #define UPDATE_ERRNO \
     cmpl    $0, %eax; \
     jge     CONCAT(else, __LINE__); \
+    imul    $-1, %eax; \
     movl    %eax, errno; \
     movl    $-1, %eax; \
     CONCAT(else, __LINE__):
