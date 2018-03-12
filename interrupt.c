@@ -103,10 +103,11 @@ void keyboard_routine() {
   unsigned char position = value & 0b01111111;
   char action = value >> 7;
   if(action == 0) {
-    char key;
-    if(position < 98) {
+    char key = 'C';
+    if(position >= 0 && position < 98) {
       key = char_map[position];
-    } else {
+    }
+    if(key == '\0') {
       key = 'C';
     }
     printc_xy(0, 0, key);
