@@ -38,6 +38,8 @@ int sys_fork() {
   return PID;
 }
 
+#define CHUNK_SIZE 256
+
 int sys_write(int fd, char* buffer, int size) {
   int error = check_fd(fd, WRITE_OPERATION);
   if(error < 0) {
@@ -49,12 +51,17 @@ int sys_write(int fd, char* buffer, int size) {
   if(size < 0) {
     return -EINVAL;
   }
-  char buffer_copy[size];
-  error = copy_from_user(buffer, buffer_copy, size);
+  char buffer_copy[CHUNK_SIZE];
+  int offset = 0;
+  while(error >= 0 && offset < size) {
+    int move_size = min(size, CHUNK_SIZE);
+    error = copy_from_user(buffer + offset, buffer_copy, move_size);
+    offset += move_size;
+    sys_write_console(buffer_copy, move_size);
+  }
   if(error < 0) {
     return error;
   }
-  sys_write_console(buffer_copy, size);
   return size;
 }
 
