@@ -8,7 +8,7 @@
 #include <types.h>
 
 
-extern TSS         tss;
+extern TSS tss;
 extern Descriptor* gdt;
 
 extern unsigned long zeos_ticks;

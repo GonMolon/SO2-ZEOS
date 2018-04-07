@@ -2,7 +2,8 @@
 #define _LINUX_LIST_H
 
 struct list_head {
-	struct list_head *next, *prev;
+	struct list_head* next;
+    struct list_head* prev;
 };
 
 /*
