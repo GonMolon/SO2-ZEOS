@@ -12,7 +12,7 @@ Byte phys_mem[TOTAL_PAGES];
 
 /* SEGMENTATION */
 /* Memory segements description table */
-Descriptor *gdt = (Descriptor *) GDT_START;
+Descriptor* gdt = (Descriptor*) GDT_START;
 /* Register pointing to the memory segments table */
 Register gdtR;
 
@@ -41,7 +41,7 @@ void init_dir_pages() {
 
   for(i = 0; i < NR_TASKS; i++) {
     dir_pages[i][ENTRY_DIR_PAGES].entry = 0;
-    dir_pages[i][ENTRY_DIR_PAGES].bits.pbase_addr = (((unsigned int)&pagusr_table[i]) >> 12);
+    dir_pages[i][ENTRY_DIR_PAGES].bits.pbase_addr = (((unsigned int) &pagusr_table[i]) >> 12);
     dir_pages[i][ENTRY_DIR_PAGES].bits.user = 1;
     dir_pages[i][ENTRY_DIR_PAGES].bits.rw = 1;
     dir_pages[i][ENTRY_DIR_PAGES].bits.present = 1;
@@ -73,14 +73,14 @@ void init_table_pages() {
 
 
 /* Initialize pages for initial process (user pages) */
-void set_user_pages( struct task_struct *task ) {
+void set_user_pages(struct task_struct* task ) {
   int pag; 
   int new_ph_pag;
   page_table_entry* process_PT = get_PT(task);
 
   /* CODE */
   for(pag = 0; pag < NUM_PAG_CODE; pag++) {
-    new_ph_pag=alloc_frame();
+    new_ph_pag = alloc_frame();
     process_PT[PAG_LOG_INIT_CODE+pag].entry = 0;
     process_PT[PAG_LOG_INIT_CODE+pag].bits.pbase_addr = new_ph_pag;
     process_PT[PAG_LOG_INIT_CODE+pag].bits.user = 1;
@@ -89,7 +89,7 @@ void set_user_pages( struct task_struct *task ) {
   
   /* DATA */ 
   for(pag = 0; pag < NUM_PAG_DATA; pag++) {
-    new_ph_pag=alloc_frame();
+    new_ph_pag = alloc_frame();
     process_PT[PAG_LOG_INIT_DATA+pag].entry = 0;
     process_PT[PAG_LOG_INIT_DATA+pag].bits.pbase_addr = new_ph_pag;
     process_PT[PAG_LOG_INIT_DATA+pag].bits.user = 1;
@@ -99,7 +99,7 @@ void set_user_pages( struct task_struct *task ) {
 }
 
 /* Writes on CR3 register producing a TLB flush */
-void set_cr3(page_table_entry * dir) {
+void set_cr3(page_table_entry* dir) {
   asm volatile("movl %0,%%cr3": :"r" (dir));
 }
 
@@ -183,7 +183,7 @@ void setTSS() {
 
 /* Initializes the ByteMap of free physical pages.
  * The kernel pages are marked as used */
-int init_frames( void ) {
+int init_frames(void) {
   int i;
   /* Mark pages as Free */
   for(i = 0; i < TOTAL_PAGES; i++) {
@@ -198,7 +198,7 @@ int init_frames( void ) {
 
 /* alloc_frame - Search a free physical page (== frame) and mark it as USED_FRAME. 
  * Returns the frame number or -1 if there isn't any frame available. */
-int alloc_frame( void ) {
+int alloc_frame(void) {
   int i;
   for(i = NUM_PAG_KERNEL; i < TOTAL_PAGES;) {
     if(phys_mem[i] == FREE_FRAME) {
@@ -212,7 +212,7 @@ int alloc_frame( void ) {
   return -1;
 }
 
-void free_user_pages(struct task_struct *task) {
+void free_user_pages(struct task_struct*task {
   int pag;
   page_table_entry* process_PT = get_PT(task);
     /* DATA */
