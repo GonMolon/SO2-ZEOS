@@ -10,16 +10,16 @@
  * Container for the Task array and 2 additional pages (the first and the last one)
  * to protect against out of bound accesses.
  */
-union task_union protected_tasks[NR_TASKS+2]
-  __attribute__((__section__(".data.task")));
+union task_union protected_tasks[NR_TASKS+2] __attribute__((__section__(".data.task")));
 
 union task_union* task = &protected_tasks[1]; /* == union task_union task[NR_TASKS] */
 
-#if 0
+struct list_head free_queue;
+struct list_head ready_queue;
+
 struct task_struct* list_head_to_task_struct(struct list_head* l) {
-  return list_entry(l, struct task_struct, list);
+  return list_entry(l, struct task_struct, anchor);
 }
-#endif
 
 extern struct list_head blocked;
 
@@ -61,8 +61,12 @@ void init_task1(void) {
 }
 
 
-void init_sched(){
-
+void init_sched() {
+    INIT_LIST_HEAD(&free_queue);
+    INIT_LIST_HEAD(&ready_queue);
+    for(int i = 1; i < NR_TASKS + 1; ++i) {
+        list_add(&protected_tasks[i].task.anchor, &free_queue);
+    }
 }
 
 struct task_struct* current() {
