@@ -56,6 +56,11 @@ void cpu_idle(void) {
 	while(1);
 }
 
+void update_TSS(struct task_struct* task) {
+    union task_union* aux = (union task_union*) task;
+    tss.esp0 = KERNEL_ESP(aux);
+}
+
 void init_idle(void) {
     struct list_head* free_task = list_first(&free_queue);
     idle_task = list_head_to_task_struct(free_task);
@@ -76,10 +81,9 @@ void init_task1(void) {
     allocate_DIR(task1);
     set_user_pages(task1);
 
-    // TODO update TSS
-    // TODO update cr3 with its page directory table
+    update_TSS(task1);  // Updating TSS
+    set_cr3(get_DIR(task1)); // Updating current page directory
 }
-
 
 void init_sched() {
     last_PID = 0;

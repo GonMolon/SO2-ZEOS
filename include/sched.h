@@ -29,9 +29,9 @@ extern union task_union protected_tasks[NR_TASKS+2];
 extern union task_union* task; /* Vector de tasques */
 extern struct task_struct* idle_task;
 
-#define KERNEL_ESP(t)   (DWord) &(t)->stack[KERNEL_STACK_SIZE]
+#define KERNEL_ESP(t) (DWord) &(t)->stack[KERNEL_STACK_SIZE]
 
-#define INITIAL_ESP     KERNEL_ESP(&task[1])
+#define INITIAL_ESP KERNEL_ESP(&task[1])
 
 /* Inicialitza les dades del proces inicial */
 void init_task1(void);
