@@ -5,6 +5,7 @@
 #include <sched.h>
 #include <mm.h>
 #include <io.h>
+#include <list.h>
 
 /**
  * Container for the Task array and 2 additional pages (the first and the last one)
@@ -14,8 +15,12 @@ union task_union protected_tasks[NR_TASKS+2] __attribute__((__section__(".data.t
 
 union task_union* task = &protected_tasks[1]; /* == union task_union task[NR_TASKS] */
 
+struct task_struct* idle_task;
+
 struct list_head free_queue;
 struct list_head ready_queue;
+
+int last_PID;
 
 struct task_struct* list_head_to_task_struct(struct list_head* l) {
   return list_entry(l, struct task_struct, anchor);
@@ -48,20 +53,37 @@ int allocate_DIR(struct task_struct* t) {
 void cpu_idle(void) {
 	__asm__ __volatile__("sti": : :"memory");
 
-	while(1) {
-	;
-	}
+	while(1);
 }
 
-void init_idle (void) {
+void init_idle(void) {
+    struct list_head* free_task = list_first(&free_queue);
+    idle_task = list_head_to_task_struct(free_task);
+    list_del(free_task);
 
+    idle_task->PID = last_PID++; // PID = 0
+    allocate_DIR(idle_task);
+
+    // TODO set up context of idle process (kernel stack with cpu_idle() address)
 }
 
 void init_task1(void) {
+    struct list_head* free_task = list_first(&free_queue);
+    struct task_struct* task1 = list_head_to_task_struct(free_task);
+    list_del(free_task);
+
+    task1->PID = last_PID++; // PID = 0
+    allocate_DIR(task1);
+    set_user_pages(task1);
+
+    // TODO update TSS
+    // TODO update cr3 with its page directory table
 }
 
 
 void init_sched() {
+    last_PID = 0;
+
     INIT_LIST_HEAD(&free_queue);
     INIT_LIST_HEAD(&ready_queue);
     for(int i = 1; i < NR_TASKS + 1; ++i) {
