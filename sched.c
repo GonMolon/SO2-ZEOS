@@ -60,6 +60,10 @@ void update_TSS(struct task_struct* task) {
     tss.esp0 = KERNEL_ESP(TASK_UNION(task));
 }
 
+void task_switch(union task_union* t) {
+    
+}
+
 void init_idle(void) {
     struct list_head* free_task = list_first(&free_queue);
     idle_task = list_head_to_task_struct(free_task);

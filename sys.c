@@ -30,6 +30,10 @@ int sys_getpid() {
 	return current()->PID;
 }
 
+void sys_exit() {  
+  
+}
+
 int sys_fork() {
   int PID = -1;
 
@@ -67,7 +71,4 @@ int sys_write(int fd, char* buffer, int size) {
 
 unsigned long sys_gettime() {
   return zeos_ticks;
-}
-
-void sys_exit() {  
 }

@@ -42,9 +42,6 @@ ENTRY(write)
 
 
 ENTRY(gettime)
-    pushl   %ebp
-    movl    %esp, %ebp
-
     // Choosing the system call identifier
     movl    $10, %eax
 
@@ -54,5 +51,25 @@ ENTRY(gettime)
     UPDATE_ERRNO
 
     // Returning
-    popl    %ebp
+    ret
+
+
+ENTRY(fork)
+    movl    $2, %eax
+    int     $0x80
+    UPDATE_ERRNO
+    ret
+
+
+ENTRY(getpid)
+    movl    $20, %eax
+    int     $0x80
+    UPDATE_ERRNO
+    ret
+
+
+ENTRY(exit)
+    movl    $1, %eax
+    int     $0x80
+    UPDATE_ERRNO
     ret
