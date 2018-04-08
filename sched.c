@@ -57,8 +57,7 @@ void cpu_idle(void) {
 }
 
 void update_TSS(struct task_struct* task) {
-    union task_union* aux = (union task_union*) task;
-    tss.esp0 = KERNEL_ESP(aux);
+    tss.esp0 = KERNEL_ESP(TASK_UNION(task));
 }
 
 void init_idle(void) {
@@ -69,7 +68,12 @@ void init_idle(void) {
     idle_task->PID = last_PID++; // PID = 0
     allocate_DIR(idle_task);
 
-    // TODO set up context of idle process (kernel stack with cpu_idle() address)
+    union task_union* task_u = TASK_UNION(idle_task);
+    task_u->stack[KERNEL_STACK_SIZE - 2] = 0;
+    task_u->stack[KERNEL_STACK_SIZE - 1] = (DWord) &cpu_idle;
+    idle_task->kernel_esp = KERNEL_STACK_SIZE - 2;
+    // TODO move these operations to a function since 
+    // something very similar to this will also be done with fork
 }
 
 void init_task1(void) {
@@ -77,8 +81,8 @@ void init_task1(void) {
     struct task_struct* task1 = list_head_to_task_struct(free_task);
     list_del(free_task);
 
-    task1->PID = last_PID++; // PID = 0
-    allocate_DIR(task1);
+    task1->PID = last_PID++; // PID = 1
+    allocate_DIR(task1); // Will assign to it a page directory. In fact, it will be the i'th page directory if this task is the i'th one
     set_user_pages(task1);
 
     update_TSS(task1);  // Updating TSS
