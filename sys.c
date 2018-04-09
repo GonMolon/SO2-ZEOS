@@ -44,7 +44,27 @@ int sys_fork() {
     copy_data(TASK_UNION(current()), TASK_UNION(task), sizeof(union task_union));
     allocate_DIR(task);
     task->PID = PID;
-    
+
+    // Finding free frames to store data+stack
+    int data_frames[NUM_PAG_DATA];
+    for(int i = 0; i < NUM_PAG_DATA; ++i) {
+        int new_frame = alloc_frame();
+        if(new_frame == -1) {
+            return -NOT_FREE_FRAMES;
+        }
+        data_frames[i] = new_frame;
+    }
+
+    // Copying code pages (the code pages point to the same frames as the father)
+    for(int i = 0; i < NUM_PAG_CODE; ++i) {
+        get_PT(task)[PAG_LOG_INIT_CODE + i] = get_PT(current())[PAG_LOG_INIT_CODE + i];
+    }
+
+    // Data pages point to new frames
+    for(int i = 0; i < NUM_PAG_DATA; ++i) {
+        set_ss_pag(get_PT(task), PAG_LOG_INIT_DATA + i, data_frames[i]);
+    }
+
     return PID;
 }
 
