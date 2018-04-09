@@ -65,6 +65,21 @@ int sys_fork() {
         set_ss_pag(get_PT(task), PAG_LOG_INIT_DATA + i, data_frames[i]);
     }
 
+    // Augmenting logical address space of father temporarly to copy data
+    for(int i = 0; i < NUM_PAG_DATA; ++i) {
+        set_ss_pag(get_PT(current()), PAG_LOG_INIT_DATA + NUM_PAG_DATA + i, data_frames[i]);
+    }
+
+    // Copying data
+    copy_data((void*) L_USER_START + NUM_PAG_CODE*PAGE_SIZE, (void*) L_USER_START + (NUM_PAG_CODE+NUM_PAG_DATA)*PAGE_SIZE, PAGE_SIZE*NUM_PAG_DATA);
+
+    // Reverting previous step after having copied data
+    for(int i = 0; i < NUM_PAG_DATA; ++i) {
+        del_ss_pag(get_PT(current()), PAG_LOG_INIT_DATA + NUM_PAG_DATA + i);
+    }
+
+    set_cr3(get_DIR(current()));
+
     return PID;
 }
 
