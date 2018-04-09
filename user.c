@@ -2,7 +2,6 @@
 #include <types.h>
 
 int __attribute__ ((__section__(".text.main"))) main(void) {
-    getpid();
     while(1);
     return 0;
 }

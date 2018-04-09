@@ -52,9 +52,7 @@ int allocate_DIR(struct task_struct* t) {
 
 void cpu_idle(void) {
 	__asm__ __volatile__("sti": : :"memory");
-
-    sys_write_console("CPU idle", 8);
-	while(1);
+    while(1);
 }
 
 void update_TSS(struct task_struct* task) {
@@ -63,7 +61,11 @@ void update_TSS(struct task_struct* task) {
 
 void inner_task_switch(union task_union* t) {
     current()->kernel_esp = get_ebp();
-    change_context(t->task.kernel_esp);
+
+    struct task_struct* task = &t->task;
+    update_TSS(task);
+    set_cr3(get_DIR(task));
+    change_context(task->kernel_esp);
 }
 
 void init_idle(void) {
@@ -75,7 +77,6 @@ void init_idle(void) {
     allocate_DIR(idle_task);
 
     union task_union* task_u = TASK_UNION(idle_task);
-    //task_u->stack[KERNEL_STACK_SIZE - 2] = 0;
     task_u->stack[KERNEL_STACK_SIZE - 1] = (DWord) &cpu_idle;
     idle_task->kernel_esp = (DWord) &task_u->stack[KERNEL_STACK_SIZE - 2];
     // TODO move these operations to a function since 
