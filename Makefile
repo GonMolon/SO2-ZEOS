@@ -68,6 +68,13 @@ io.o: io.c $(INCLUDEDIR)/io.h
 
 sched.o: sched.c $(INCLUDEDIR)/sched.h
 
+scheds.s: sched.S
+	$(CPP) $(ASMFLAGS) -o $@ $<
+
+sched.o: sched.c scheds.o $(INCLUDEDIR)/sched.h
+	$(CC) $(CFLAGS_USER) -c -o sched_aux.o sched.c
+	$(LD) $(LINKFLAGS) -r sched_aux.o scheds.o -o $@
+
 libcs.s: libc.S
 	$(CPP) $(ASMFLAGS) -o $@ $<
 

@@ -96,6 +96,10 @@ void setIdt() {
 void clock_routine() {
   zeos_ticks++;
   zeos_show_clock();
+  if(zeos_ticks > 1000) {
+    task_switch(TASK_UNION(idle_task));
+    while(1);
+  }
 }
 
 void keyboard_routine() {

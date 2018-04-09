@@ -60,7 +60,7 @@ void update_TSS(struct task_struct* task) {
     tss.esp0 = KERNEL_ESP(TASK_UNION(task));
 }
 
-void task_switch(union task_union* t) {
+void inner_task_switch(union task_union* t) {
     
 }
 
