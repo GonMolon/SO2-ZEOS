@@ -8,6 +8,7 @@
 #include <io.h>
 #include <entry.h>
 #include <system.h>
+#include <sched.h>
 
 #include <zeos_interrupt.h>
 
@@ -96,9 +97,8 @@ void setIdt() {
 void clock_routine() {
   zeos_ticks++;
   zeos_show_clock();
-  if(zeos_ticks > 1000) {
+  if(zeos_ticks > 1000 && current() != idle_task) {
     task_switch(TASK_UNION(idle_task));
-    while(1);
   }
 }
 

@@ -47,6 +47,12 @@ struct task_struct* current();
 
 void task_switch(union task_union* t);
 
+void inner_task_switch(union task_union* t);
+
+DWord get_ebp();
+
+void change_context(DWord esp);
+
 struct task_struct* list_head_to_task_struct(struct list_head* l);
 
 int allocate_DIR(struct task_struct* t);
