@@ -8,4 +8,7 @@
 
 #define EBUFFERNULL 14
 
+#define NOT_FREE_TASK   99
+#define NOT_FREE_FRAMES 100
+
 #endif  /* __ERRNO_H__ */

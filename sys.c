@@ -35,8 +35,16 @@ void sys_exit() {
 }
 
 int sys_fork() {
-    int PID = -1;
 
+    struct task_struct* task = allocate_process();
+    if(task == NULL) {
+        return -NOT_FREE_TASK;
+    }
+    int PID = task->PID;
+    copy_data(TASK_UNION(current()), TASK_UNION(task), sizeof(union task_union));
+    allocate_DIR(task);
+    task->PID = PID;
+    
     return PID;
 }
 
