@@ -23,11 +23,11 @@ int check_fd(int fd, int permissions) {
 }
 
 int sys_ni_syscall() {
-	return -ENOSYS; /*ENOSYS*/
+    return -ENOSYS; /*ENOSYS*/
 }
 
 int sys_getpid() {
-	return current()->PID;
+    return current()->PID;
 }
 
 void sys_exit() {  
@@ -35,40 +35,38 @@ void sys_exit() {
 }
 
 int sys_fork() {
-  int PID = -1;
+    int PID = -1;
 
-  // creates the child process
-  
-  return PID;
+    return PID;
 }
 
 #define CHUNK_SIZE 256
 
 int sys_write(int fd, char* buffer, int size) {
-  int error = check_fd(fd, WRITE_OPERATION);
-  if(error < 0) {
-    return error;
-  }
-  if(buffer == NULL) {
-    return -EBUFFERNULL;
-  }
-  if(size < 0) {
-    return -EINVAL;
-  }
-  char buffer_copy[CHUNK_SIZE];
-  int offset = 0;
-  while(error >= 0 && offset < size) {
-    int move_size = min(size, CHUNK_SIZE);
-    error = copy_from_user(buffer + offset, buffer_copy, move_size);
-    offset += move_size;
-    sys_write_console(buffer_copy, move_size);
-  }
-  if(error < 0) {
-    return error;
-  }
-  return size;
+    int error = check_fd(fd, WRITE_OPERATION);
+    if(error < 0) {
+        return error;
+    }
+    if(buffer == NULL) {
+        return -EBUFFERNULL;
+    }
+    if(size < 0) {
+        return -EINVAL;
+    }
+    char buffer_copy[CHUNK_SIZE];
+    int offset = 0;
+    while(error >= 0 && offset < size) {
+        int move_size = min(size, CHUNK_SIZE);
+        error = copy_from_user(buffer + offset, buffer_copy, move_size);
+        offset += move_size;
+        sys_write_console(buffer_copy, move_size);
+    }
+    if(error < 0) {
+        return error;
+    }
+    return size;
 }
 
 unsigned long sys_gettime() {
-  return zeos_ticks;
+    return zeos_ticks;
 }
