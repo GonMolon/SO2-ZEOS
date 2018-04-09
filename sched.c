@@ -13,7 +13,7 @@
  */
 union task_union protected_tasks[NR_TASKS+2] __attribute__((__section__(".data.task")));
 
-union task_union* task = &protected_tasks[1]; /* == union task_union task[NR_TASKS] */
+union task_union* tasks = &protected_tasks[1]; /* == union task_union task[NR_TASKS] */
 
 struct task_struct* idle_task;
 
@@ -43,11 +43,22 @@ page_table_entry* get_PT(struct task_struct* t) {
 int allocate_DIR(struct task_struct* t) {
 	int pos;
 
-	pos = ((int)t-(int)task)/sizeof(union task_union);
+	pos = ((int)t-(int)tasks)/sizeof(union task_union);
 
 	t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos]; 
 
 	return 1;
+}
+
+struct task_struct* allocate_process() {
+    struct list_head* free_task = list_first(&free_queue);
+    if(free_task == &free_queue) {
+        return NULL;
+    }
+    struct task_struct* task = list_head_to_task_struct(free_task);
+    list_del(free_task);
+    task->PID = last_PID++;
+    return task;
 }
 
 void cpu_idle(void) {
@@ -69,11 +80,7 @@ void inner_task_switch(union task_union* t) {
 }
 
 void init_idle(void) {
-    struct list_head* free_task = list_first(&free_queue);
-    idle_task = list_head_to_task_struct(free_task);
-    list_del(free_task);
-
-    idle_task->PID = last_PID++; // PID = 0
+    idle_task = allocate_process();
     allocate_DIR(idle_task);
 
     union task_union* task_u = TASK_UNION(idle_task);
@@ -84,11 +91,7 @@ void init_idle(void) {
 }
 
 void init_task1(void) {
-    struct list_head* free_task = list_first(&free_queue);
-    struct task_struct* task1 = list_head_to_task_struct(free_task);
-    list_del(free_task);
-
-    task1->PID = last_PID++; // PID = 1
+    struct task_struct* task1 = allocate_process();
     allocate_DIR(task1); // Will assign to it a page directory. In fact, it will be the i'th page directory if this task is the i'th one
     set_user_pages(task1);
 

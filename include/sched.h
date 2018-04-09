@@ -29,12 +29,12 @@ union task_union {
 #define TASK_UNION(task) (union task_union*) task
 
 extern union task_union protected_tasks[NR_TASKS+2];
-extern union task_union* task; /* Vector de tasques */
+extern union task_union* tasks; /* Vector de tasques */
 extern struct task_struct* idle_task;
 
 #define KERNEL_ESP(t) (DWord) &(t)->stack[KERNEL_STACK_SIZE]
 
-#define INITIAL_ESP KERNEL_ESP(&task[1])
+#define INITIAL_ESP KERNEL_ESP(&tasks[1])
 
 /* Inicialitza les dades del proces inicial */
 void init_task1(void);
@@ -55,11 +55,13 @@ void change_context(DWord esp);
 
 struct task_struct* list_head_to_task_struct(struct list_head* l);
 
-int allocate_DIR(struct task_struct* t);
+int allocate_DIR(struct task_struct* task);
 
-page_table_entry* get_PT (struct task_struct* t) ;
+struct task_struct* allocate_process();
 
-page_table_entry* get_DIR (struct task_struct* t) ;
+page_table_entry* get_PT(struct task_struct* t) ;
+
+page_table_entry* get_DIR(struct task_struct* t) ;
 
 /* Headers for the scheduling policy */
 void sched_next_rr();
