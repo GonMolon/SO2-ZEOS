@@ -48,22 +48,29 @@ int sys_fork() {
 
     // Copying system context from father to child
     copy_data(TASK_UNION(current()), TASK_UNION(task), sizeof(union task_union));
-    allocate_DIR(task);
 
     // Setting child PID
     task->PID = PID;
 
     // Setting child system context to be ready for whenever it gets activated by a task_switch
     DWord* father_ebp = (DWord*) get_ebp();
-    int stack_pos = ((DWord) father_ebp) & (PAGE_SIZE - 1)/4;
+    int stack_pos = (((DWord) father_ebp) & (PAGE_SIZE - 1))/4;
     TASK_UNION(task)->stack[stack_pos] = (DWord) &ret_from_fork;
     task->kernel_esp = (DWord) &TASK_UNION(task)->stack[stack_pos-1];
+
+    // Assigning a free page directory to child
+    allocate_DIR(task);
 
     // Finding free frames to store data+stack
     int data_frames[NUM_PAG_DATA];
     for(int i = 0; i < NUM_PAG_DATA; ++i) {
         int new_frame = alloc_frame();
         if(new_frame == -1) {
+            // Free-ing reserved frames since we don't have enought for the child
+            for(int j = 0; j < i; ++j) {
+                free_frame(j);
+            }
+            // TODO free frames
             return -NOT_FREE_FRAMES;
         }
         data_frames[i] = new_frame;
