@@ -102,6 +102,7 @@ int sys_fork() {
     // Flush TLB
     set_cr3(get_DIR(current()));
 
+    // Adding process to ready_queue
     add_process_to_scheduling(task);
 
     return PID;

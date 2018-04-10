@@ -97,6 +97,7 @@ void setIdt() {
 void clock_routine() {
   zeos_ticks++;
   zeos_show_clock();
+  execute_scheduling();
 }
 
 void keyboard_routine() {

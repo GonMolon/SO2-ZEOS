@@ -121,3 +121,13 @@ struct task_struct* current() {
   return (struct task_struct*)(ret_value & 0xfffff000);
 }
 
+
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+void execute_scheduling() {
+    update_sched_data_rr();
+    if(needs_sched_rr()) {
+        
+    }
+}
+

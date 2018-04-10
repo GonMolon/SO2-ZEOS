@@ -61,9 +61,11 @@ struct task_struct* allocate_process();
 
 void add_process_to_scheduling(struct task_struct* task);
 
-page_table_entry* get_PT(struct task_struct* t) ;
+page_table_entry* get_PT(struct task_struct* t);
 
-page_table_entry* get_DIR(struct task_struct* t) ;
+page_table_entry* get_DIR(struct task_struct* t);
+
+void execute_scheduling();
 
 /* Headers for the scheduling policy */
 void sched_next_rr();
