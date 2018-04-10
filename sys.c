@@ -34,6 +34,10 @@ void sys_exit() {
   
 }
 
+int ret_from_fork() {
+    return 0;
+}
+
 int sys_fork() {
 
     struct task_struct* task = allocate_process();
@@ -41,9 +45,19 @@ int sys_fork() {
         return -NOT_FREE_TASK;
     }
     int PID = task->PID;
+
+    // Copying system context from father to child
     copy_data(TASK_UNION(current()), TASK_UNION(task), sizeof(union task_union));
     allocate_DIR(task);
+
+    // Setting child PID
     task->PID = PID;
+
+    // Setting child system context to be ready for whenever it gets activated by a task_switch
+    DWord* father_ebp = (DWord*) get_ebp();
+    int stack_pos = ((DWord) father_ebp) & (PAGE_SIZE - 1)/4;
+    TASK_UNION(task)->stack[stack_pos] = (DWord) &ret_from_fork;
+    task->kernel_esp = (DWord) &TASK_UNION(task)->stack[stack_pos-1];
 
     // Finding free frames to store data+stack
     int data_frames[NUM_PAG_DATA];
@@ -78,7 +92,10 @@ int sys_fork() {
         del_ss_pag(get_PT(current()), PAG_LOG_INIT_DATA + NUM_PAG_DATA + i);
     }
 
+    // Flush TLB
     set_cr3(get_DIR(current()));
+
+    add_process_to_scheduling(task);
 
     return PID;
 }

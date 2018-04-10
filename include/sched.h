@@ -26,7 +26,7 @@ union task_union {
   unsigned long stack[KERNEL_STACK_SIZE];    /* pila de sistema, per procés */
 };
 
-#define TASK_UNION(task) (union task_union*) task
+#define TASK_UNION(task) ((union task_union*) task)
 
 extern union task_union protected_tasks[NR_TASKS+2];
 extern union task_union* tasks; /* Vector de tasques */
@@ -58,6 +58,8 @@ struct task_struct* list_head_to_task_struct(struct list_head* l);
 int allocate_DIR(struct task_struct* task);
 
 struct task_struct* allocate_process();
+
+void add_process_to_scheduling(struct task_struct* task);
 
 page_table_entry* get_PT(struct task_struct* t) ;
 

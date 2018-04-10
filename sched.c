@@ -61,6 +61,10 @@ struct task_struct* allocate_process() {
     return task;
 }
 
+void add_process_to_scheduling(struct task_struct* task) {
+    list_add_tail(&task->anchor, &ready_queue);
+}
+
 void cpu_idle(void) {
 	__asm__ __volatile__("sti": : :"memory");
     while(1);
@@ -86,8 +90,6 @@ void init_idle(void) {
     union task_union* task_u = TASK_UNION(idle_task);
     task_u->stack[KERNEL_STACK_SIZE - 1] = (DWord) &cpu_idle;
     idle_task->kernel_esp = (DWord) &task_u->stack[KERNEL_STACK_SIZE - 2];
-    // TODO move these operations to a function since 
-    // something very similar to this will also be done with fork
 }
 
 void init_task1(void) {
