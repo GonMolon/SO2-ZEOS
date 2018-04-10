@@ -9,7 +9,7 @@
 int errno = 0;
 
 void perror() {
-  char* error_message;
+  char* error_message = "Unknown error";
   switch(errno) {
     case ENOSYS:
       error_message = "System call not defined";
@@ -25,6 +25,12 @@ void perror() {
       break;
     case EBUFFERNULL:
       error_message = "Buffer address is null";
+      break;
+    case NOT_FREE_TASK:
+      error_message = "There are not free tasks to store the new process";
+      break;
+    case NOT_FREE_FRAMES:
+      error_message = "There are not free frames to allocate the duplicated data+stack of child";
       break;
   }
   write(1, error_message, strlen(error_message));
