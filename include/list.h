@@ -110,7 +110,7 @@ int list_empty(const struct list_head* head);
  * @head:	the head for your list.
  */
 #define list_for_each(pos, head) \
-	for(pos = (head)->next; pos != (head); pos = pos->next)
+	for(struct list_head* pos = (head)->next; pos != (head); pos = pos->next)
 
 /**
  * list_for_each_safe   -       iterate over a list safe against removal of list entry
@@ -119,7 +119,7 @@ int list_empty(const struct list_head* head);
  * @head:       the head for your list.
  */
 #define list_for_each_safe(pos, n, head) \
-        for(pos = (head)->next, n = pos->next; pos != (head); \
+        for(struct list_head* pos = (head)->next, n = pos->next; pos != (head); \
                 pos = n, n = pos->next)
 
 /**
