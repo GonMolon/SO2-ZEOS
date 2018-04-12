@@ -61,6 +61,18 @@ struct task_struct* allocate_process() {
     return task;
 }
 
+void free_process_resources() {
+    list_add(&current()->anchor, &free_queue); // We free its PCB adding it into the free queue
+    free_user_pages(current()); // We free the phisical memory used by this process (only data). 
+                                // Ideally it should also free code frames if it were the last process in executiom
+                                // Note that apart from freeing the physical memory, it's also necessary to reset the 
+                                // page table, because if there's another future process that uses it, it would have access
+                                // to those physical frames. (That is done inside free_user_pages()). It would also be
+                                // important to "delete" their PT because if we don't do it, the advantages from the directory
+                                // scheme wouldn't exist anymore. In this particular case of ZEOS is not necessary.
+
+}
+
 void cpu_idle(void) {
 	__asm__ __volatile__("sti": : :"memory");
     while(1);
@@ -150,8 +162,8 @@ void add_process_to_scheduling(struct task_struct* task) {
 
 void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
     if(dest == NULL) {
-        list_for_each(l, &ready_queue) {    // We search for task in ready queue although
-            if(task->PID == list_head_to_task_struct(l)->PID) {       // we know it will be in the first position
+        list_for_each(l, &ready_queue) { // We search for task in ready queue although
+            if(task->PID == list_head_to_task_struct(l)->PID) { // we know it will be in the first position
                 list_del(&(task->anchor));
                 break;
             }
@@ -162,13 +174,19 @@ void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
 }
 
 void sched_next_rr() {
-    if(current() != idle_task) {
+    if(current() != idle_task && current()->quantum != -1) { // If the task is not idle and it's not being exited, then we put it back into ready
         current()->quantum = QUANTUM;   // We reset its quantum before moving it back to the ready queue
         update_process_state_rr(current(), &ready_queue);
     }
-    struct task_struct* next_task = list_head_to_task_struct(list_first(&ready_queue));
-    update_process_state_rr(next_task, NULL);
+    struct task_struct* next_task;
+    if(list_first(&ready_queue) != &ready_queue) { // There is another task waiting
+        next_task = list_head_to_task_struct(list_first(&ready_queue));
+        update_process_state_rr(next_task, NULL);
+    } else { // There is no other task in ready so we activate idle_task
+        next_task = idle_task;
+    }
     task_switch(TASK_UNION(next_task));
+    
 }
 
 int get_quantum(struct task_struct* task) {

@@ -60,6 +60,8 @@ int allocate_DIR(struct task_struct* task);
 
 struct task_struct* allocate_process();
 
+void free_process_resources();
+
 page_table_entry* get_PT(struct task_struct* t);
 
 page_table_entry* get_DIR(struct task_struct* t);

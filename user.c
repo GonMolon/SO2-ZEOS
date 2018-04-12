@@ -14,10 +14,9 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
     PID = fork();
     itoa(PID, buff);
     write(1, buff, strlen(buff));
-
-    PID = fork();
-    itoa(PID, buff);
-    write(1, buff, strlen(buff));
+    if(PID == 0) {
+        exit();
+    }
     
     while(1);
     return 0;

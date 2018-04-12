@@ -30,8 +30,12 @@ int sys_getpid() {
     return current()->PID;
 }
 
-void sys_exit() {  
-  
+void sys_exit() {
+
+    free_process_resources(current());
+
+    current()->quantum = -1; // So the scheduler knows it doesn't have to be added in ready again
+    sched_next_rr();
 }
 
 int ret_from_fork() {
