@@ -90,6 +90,7 @@ void init_idle(void) {
 
 void init_task1(void) {
     struct task_struct* task1 = allocate_process();
+    task1->quantum = QUANTUM;
     allocate_DIR(task1); // Will assign to it a page directory. In fact, it will be the i'th page directory if this task is the i'th one
     set_user_pages(task1);
 
@@ -130,7 +131,7 @@ void execute_scheduling() {
     }
 }
 
-void update_sched_data_rr() {
+void update_sched_data_rr() {    
     current()->quantum--;
     if(current()->quantum <= -1) { // To avoid overflow
         current()->quantum = 0;
@@ -162,12 +163,12 @@ void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
 
 void sched_next_rr() {
     if(current() != idle_task) {
-        current()->quantum = QUANTUM;
+        current()->quantum = QUANTUM;   // We reset its quantum before moving it back to the ready queue
         update_process_state_rr(current(), &ready_queue);
-        struct task_struct* next_task = list_head_to_task_struct(list_first(&ready_queue));
-        update_process_state_rr(next_task, NULL);
-        task_switch(TASK_UNION(next_task));
     }
+    struct task_struct* next_task = list_head_to_task_struct(list_first(&ready_queue));
+    update_process_state_rr(next_task, NULL);
+    task_switch(TASK_UNION(next_task));
 }
 
 int get_quantum(struct task_struct* task) {

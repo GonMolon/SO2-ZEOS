@@ -67,7 +67,7 @@ page_table_entry* get_DIR(struct task_struct* t);
 void execute_scheduling();
 
 /* Headers for the scheduling policy */
-#define QUANTUM 100000
+#define QUANTUM 1000
 
 void sched_next_rr();
 void update_process_state_rr(struct task_struct* task, struct list_head* dest);
