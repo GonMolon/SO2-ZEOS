@@ -47,7 +47,7 @@ int sys_fork() {
     int PID = task->PID;
 
     // Copying system context from father to child
-    copy_data(TASK_UNION(current()), TASK_UNION(task), sizeof(union task_union));
+    *TASK_UNION(task) = *TASK_UNION(current());
 
     // Setting child PID
     task->PID = PID;
