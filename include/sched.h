@@ -17,6 +17,7 @@ enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 struct task_struct {
     int PID;			/* Process ID. This MUST be the first field of the struct. */
     struct list_head anchor;
+    int quantum;
     page_table_entry* dir_pages_baseAddr;
     DWord kernel_esp;
 };
@@ -59,8 +60,6 @@ int allocate_DIR(struct task_struct* task);
 
 struct task_struct* allocate_process();
 
-void add_process_to_scheduling(struct task_struct* task);
-
 page_table_entry* get_PT(struct task_struct* t);
 
 page_table_entry* get_DIR(struct task_struct* t);
@@ -68,9 +67,12 @@ page_table_entry* get_DIR(struct task_struct* t);
 void execute_scheduling();
 
 /* Headers for the scheduling policy */
+#define QUANTUM 100000
+
 void sched_next_rr();
-void update_process_state_rr(struct task_struct* t, struct list_head* dest);
+void update_process_state_rr(struct task_struct* task, struct list_head* dest);
 int needs_sched_rr();
 void update_sched_data_rr();
+void add_process_to_scheduling(struct task_struct* task);
 
 #endif  /* __SCHED_H__ */

@@ -61,10 +61,6 @@ struct task_struct* allocate_process() {
     return task;
 }
 
-void add_process_to_scheduling(struct task_struct* task) {
-    list_add_tail(&task->anchor, &ready_queue);
-}
-
 void cpu_idle(void) {
 	__asm__ __volatile__("sti": : :"memory");
     while(1);
@@ -124,10 +120,63 @@ struct task_struct* current() {
 
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// SCHEDULING POLICY
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 void execute_scheduling() {
     update_sched_data_rr();
     if(needs_sched_rr()) {
-        
+        sched_next_rr();
     }
 }
+
+void update_sched_data_rr() {
+    current()->quantum--;
+    if(current()->quantum <= -1) { // To avoid overflow
+        current()->quantum = 0;
+    }
+}
+
+int needs_sched_rr() {
+    return 
+        list_first(&ready_queue) != &ready_queue                // There is another process waiting
+        && (current() == idle_task || current()->quantum <= 0); // And current task is idle or its quantum is finished
+}
+
+void add_process_to_scheduling(struct task_struct* task) {
+    update_process_state_rr(task, &ready_queue);
+}
+
+void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
+    if(dest == NULL) {
+        list_for_each(l, &ready_queue) {    // We search for task in ready queue although
+            if(task->PID == list_head_to_task_struct(l)->PID) {       // we know it will be in the first position
+                list_del(&(task->anchor));
+                break;
+            }
+        }
+    } else {
+        list_add_tail(&task->anchor, dest);
+    }
+}
+
+void sched_next_rr() {
+    if(current() != idle_task) {
+        current()->quantum = QUANTUM;
+        update_process_state_rr(current(), &ready_queue);
+        struct task_struct* next_task = list_head_to_task_struct(list_first(&ready_queue));
+        update_process_state_rr(next_task, NULL);
+        task_switch(TASK_UNION(next_task));
+    }
+}
+
+int get_quantum(struct task_struct* task) {
+    return task->quantum;
+}
+
+void set_quantum(struct task_struct* task, int new_quantum) {
+    task->quantum = new_quantum;
+}
+
+
 
