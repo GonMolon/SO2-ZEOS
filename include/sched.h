@@ -70,6 +70,10 @@ page_table_entry* get_DIR(struct task_struct* t);
 
 void execute_scheduling();
 
+int get_quantum(struct task_struct* task);
+
+void set_quantum(struct task_struct* task, int new_quantum);
+
 /* Headers for the scheduling policy */
 #define QUANTUM 1000
 

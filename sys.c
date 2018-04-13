@@ -34,7 +34,7 @@ void sys_exit() {
 
     free_process_resources(current());
 
-    current()->quantum = -1; // So the scheduler knows it doesn't have to be added in ready again
+    set_quantum(current(), -1); // So the scheduler knows it doesn't have to be added in ready again
     sched_next_rr();
 }
 

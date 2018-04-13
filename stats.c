@@ -29,6 +29,8 @@ void update_stats(struct task_struct* task, int event) {
 
     } else if(BLOCKED_TO_READY) {
 
+    } else if(QUANTUM_UPDATED) {
+        task->st.remaining_ticks = task->quantum;
     }
     task->st.elapsed_total_ticks = current;
 }
