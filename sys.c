@@ -113,8 +113,19 @@ int sys_fork() {
     return PID;
 }
 
-void sys_get_stats(int pid, struct stats* st) {
-    
+int sys_get_stats(int pid, struct stats* st) {
+
+    if(!access_ok(VERIFY_WRITE, st, sizeof(struct stats))) {
+        return -EINVAL;
+    }
+
+    for(int i = 0; i < NR_TASKS; ++i) {
+        if(tasks[i].task.PID == pid) {
+            *st = tasks[i].task.st;
+            return 0;
+        }
+    }
+    return -INEXISTENT_PID;
 }
 
 #define CHUNK_SIZE 256
@@ -122,7 +133,7 @@ void sys_get_stats(int pid, struct stats* st) {
 int sys_write(int fd, char* buffer, int size) {
     int error = check_fd(fd, WRITE_OPERATION);
     if(error < 0) {
-        return error;
+        return -error;
     }
     if(buffer == NULL) {
         return -EBUFFERNULL;

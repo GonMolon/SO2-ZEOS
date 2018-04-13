@@ -10,6 +10,7 @@
 
 #define NOT_FREE_TASK   100
 #define NOT_FREE_FRAMES 101
+#define INEXISTENT_PID  102
 
 
 #endif  /* __ERRNO_H__ */

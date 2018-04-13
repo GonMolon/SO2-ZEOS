@@ -32,6 +32,9 @@ void perror() {
     case NOT_FREE_FRAMES:
       error_message = "There are not free frames to allocate the duplicated data+stack of child";
       break;
+    case INEXISTENT_PID:
+      error_message = "There is no process with this PID";
+      break;
   }
   write(1, error_message, strlen(error_message));
 }
