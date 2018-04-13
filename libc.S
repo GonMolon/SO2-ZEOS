@@ -73,3 +73,21 @@ ENTRY(exit)
     int     $0x80
     UPDATE_ERRNO
     ret
+
+
+ENTRY(get_stats)
+    pushl   %ebp
+    movl    %esp, %ebp
+    
+    pushl   %ebx
+    movl    8(%ebp), %ebx
+    movl    12(%ebp), %ecx
+
+    movl    $35, %eax
+    int     $0x80
+
+    UPDATE_ERRNO
+
+    popl    %ebx
+    popl    %ebp
+    ret

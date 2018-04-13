@@ -23,6 +23,8 @@ int getpid();
 
 int fork();
 
+void get_stats(int pid, struct stats* st);
+
 unsigned long gettime();
 
 void exit();

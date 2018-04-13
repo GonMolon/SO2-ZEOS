@@ -113,6 +113,10 @@ int sys_fork() {
     return PID;
 }
 
+void sys_get_stats(int pid, struct stats* st) {
+    
+}
+
 #define CHUNK_SIZE 256
 
 int sys_write(int fd, char* buffer, int size) {
