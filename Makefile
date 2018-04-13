@@ -27,7 +27,7 @@ SYSLDFLAGS = -T system.lds
 USRLDFLAGS = -T user.lds
 LINKFLAGS = -g
 
-SYSOBJ = interrupt.o entry.o sys_call_table.o io.o sched.o sys.o mm.o devices.o utils.o hardware.o list.o
+SYSOBJ = interrupt.o entry.o sys_call_table.o io.o sched.o sys.o mm.o devices.o utils.o hardware.o list.o stats.o
 
 LIBZEOS = -L . -l zeos
 
@@ -75,6 +75,8 @@ sched.o: sched.c scheds.o $(INCLUDEDIR)/sched.h
 	$(CC) $(CFLAGS_USER) -c -o sched_aux.o sched.c
 	$(LD) $(LINKFLAGS) -r sched_aux.o scheds.o -o $@
 
+stats.o: stats.c $(INCLUDEDIR)/stats.h
+
 libcs.s: libc.S
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
@@ -84,7 +86,7 @@ libc.o: libc.c libcs.o $(INCLUDEDIR)/libc.h
 
 mm.o: mm.c $(INCLUDEDIR)/types.h $(INCLUDEDIR)/mm.h
 
-sys.o: sys.c $(INCLUDEDIR)/devices.h
+sys.o: sys.c $(INCLUDEDIR)/devices.h $(INCLUDEDIR)/sched.h $(INCLUDEDIR)/stats.h
 
 util.s: util.S
 	$(CPP) $(ASMFLAGS) -o $@ $<

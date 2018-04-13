@@ -108,6 +108,7 @@ int sys_fork() {
 
     // Adding process to ready_queue
     add_process_to_scheduling(task);
+    update_stats(task, SYS_TO_READY);
 
     return PID;
 }

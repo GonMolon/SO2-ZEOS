@@ -23,7 +23,7 @@ struct list_head ready_queue;
 int last_PID;
 
 struct task_struct* list_head_to_task_struct(struct list_head* l) {
-  return list_entry(l, struct task_struct, anchor);
+    return list_entry(l, struct task_struct, anchor);
 }
 
 extern struct list_head blocked;
@@ -45,7 +45,7 @@ int allocate_DIR(struct task_struct* t) {
 
 	pos = ((int)t-(int)tasks)/sizeof(union task_union);
 
-	t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos]; 
+	t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos];
 
 	return 1;
 }
@@ -57,7 +57,10 @@ struct task_struct* allocate_process() {
     }
     struct task_struct* task = list_head_to_task_struct(free_task);
     list_del(free_task);
+
     task->PID = last_PID++;
+    reset_stats(task);
+    update_stats(task, PROCESS_CREATED);
     return task;
 }
 
@@ -185,8 +188,9 @@ void sched_next_rr() {
     } else { // There is no other task in ready so we activate idle_task
         next_task = idle_task;
     }
+    update_stats(current(), SYS_TO_READY);
+    update_stats(next_task, READY_TO_SYS);
     task_switch(TASK_UNION(next_task));
-    
 }
 
 int get_quantum(struct task_struct* task) {

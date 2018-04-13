@@ -79,7 +79,13 @@ ENTRY(system_call_handler)
     cmpl    $MAX_SYSCALL, %eax
     jge     error
 
+    movl    %eax, %ebx
+    call    update_entering_sys
+    movl    %ebx, %eax
     call    *sys_call_table(, %eax, 0x04)
+    movl    %eax, %ebx
+    call    update_leaving_sys
+    movl    %ebx, %eax
 
     jmp     end
 error:
