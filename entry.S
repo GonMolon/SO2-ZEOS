@@ -99,13 +99,17 @@ end:
 ENTRY(clock_handler)
     SAVE_ALL
     EOI
+    call    update_entering_sys
     call    clock_routine
+    call    update_leaving_sys
     RESTORE_ALL
     iret
 
 ENTRY(keyboard_handler)
     SAVE_ALL
     EOI
+    call    update_entering_sys
     call    keyboard_routine
+    call    update_leaving_sys
     RESTORE_ALL
     iret
