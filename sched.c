@@ -160,7 +160,11 @@ int needs_sched_rr() {
 }
 
 void add_process_to_scheduling(struct task_struct* task) {
-    update_process_state_rr(task, &ready_queue);
+    // Reseting stats of process
+    reset_stats(task);
+    update_stats(task, PROCESS_CREATED);
+    
+    update_process_state_rr(task, &readyqueue);
 }
 
 void update_process_state_rr(struct task_struct* task, struct list_head* dest) {

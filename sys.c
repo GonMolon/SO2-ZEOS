@@ -106,10 +106,6 @@ int sys_fork() {
     // Flush TLB
     set_cr3(get_DIR(current()));
 
-    // Reseting stats of child
-    reset_stats(task);
-    update_stats(task, PROCESS_CREATED);
-
     // Adding process to ready_queue
     add_process_to_scheduling(task);
 
