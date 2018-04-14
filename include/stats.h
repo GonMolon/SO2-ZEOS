@@ -27,6 +27,6 @@ struct task_struct;
 
 void reset_stats(struct task_struct* task);
 
-void update_stats(struct task_struct* task, int event);
+void update_stats(struct task_struct* task, enum event e);
 
 #endif /* !STATS_H */

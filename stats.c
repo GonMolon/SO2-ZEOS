@@ -12,24 +12,24 @@ void reset_stats(struct task_struct* task) {
     task->st.remaining_ticks = 0;
 }
 
-void update_stats(struct task_struct* task, int event) {
+void update_stats(struct task_struct* task, enum event e) {
     unsigned long elapsed = task->st.elapsed_total_ticks;
     unsigned long current = get_ticks();
     unsigned long incr = current - elapsed;
-    if(event == USER_TO_SYS) {
+    if(e == USER_TO_SYS) {
         task->st.user_ticks += incr;
-    } else if(event == SYS_TO_USER) {
+    } else if(e == SYS_TO_USER) {
         task->st.system_ticks += incr;
-    } else if(event == SYS_TO_READY) {
+    } else if(e == SYS_TO_READY) {
         task->st.system_ticks += incr;
-    } else if(event == READY_TO_SYS) {
+    } else if(e == READY_TO_SYS) {
         task->st.ready_ticks += incr;
         ++task->st.total_trans;
-    } else if(USER_TO_BLOCKED) {
+    } else if(e == USER_TO_BLOCKED) {
 
-    } else if(BLOCKED_TO_READY) {
+    } else if(e == BLOCKED_TO_READY) {
 
-    } else if(QUANTUM_UPDATED) {
+    } else if(e == QUANTUM_UPDATED) {
         task->st.remaining_ticks = task->quantum;
     }
     task->st.elapsed_total_ticks = current;

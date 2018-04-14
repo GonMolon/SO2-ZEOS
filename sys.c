@@ -106,9 +106,12 @@ int sys_fork() {
     // Flush TLB
     set_cr3(get_DIR(current()));
 
+    // Reseting stats of child
+    reset_stats(task);
+    update_stats(task, PROCESS_CREATED);
+
     // Adding process to ready_queue
     add_process_to_scheduling(task);
-    update_stats(task, SYS_TO_READY);
 
     return PID;
 }
@@ -121,6 +124,7 @@ int sys_get_stats(int pid, struct stats* st) {
 
     for(int i = 0; i < NR_TASKS; ++i) {
         if(tasks[i].task.PID == pid) {
+            update_stats(&tasks[i].task, QUANTUM_UPDATED); // To refresh the remaing ticks field
             *st = tasks[i].task.st;
             return 0;
         }
