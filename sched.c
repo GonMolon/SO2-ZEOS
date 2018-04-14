@@ -18,7 +18,7 @@ union task_union* tasks = &protected_tasks[1]; /* == union task_union task[NR_TA
 struct task_struct* idle_task;
 
 struct list_head free_queue;
-struct list_head ready_queue;
+struct list_head readyqueue;
 
 int last_PID;
 
@@ -117,7 +117,7 @@ void init_sched() {
     last_PID = 0;
 
     INIT_LIST_HEAD(&free_queue);
-    INIT_LIST_HEAD(&ready_queue);
+    INIT_LIST_HEAD(&readyqueue);
     for(int i = 1; i < NR_TASKS + 1; ++i) {
         list_add(&protected_tasks[i].task.anchor, &free_queue);
     }
@@ -155,7 +155,7 @@ void update_sched_data_rr() {
 
 int needs_sched_rr() {
     return 
-        list_first(&ready_queue) != &ready_queue                // There is another process waiting
+        list_first(&readyqueue) != &readyqueue                // There is another process waiting
         && (current() == idle_task || current()->quantum <= 0); // And current task is idle or its quantum is finished
 }
 
@@ -169,7 +169,7 @@ void add_process_to_scheduling(struct task_struct* task) {
 
 void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
     if(dest == NULL) {
-        list_for_each(l, &ready_queue) { // We search for task in ready queue although
+        list_for_each(l, &readyqueue) { // We search for task in ready queue although
             if(task->PID == list_head_to_task_struct(l)->PID) { // we know it will be in the first position
                 list_del(&(task->anchor));
                 break;
@@ -183,11 +183,11 @@ void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
 void sched_next_rr() {
     if(current() != idle_task && current()->quantum != -1) { // If the task is not idle and it's not being exited, then we put it back into ready
         set_quantum(current(), QUANTUM); // We reset its quantum before moving it back to the ready queue
-        update_process_state_rr(current(), &ready_queue);
+        update_process_state_rr(current(), &readyqueue);
     }
     struct task_struct* next_task;
-    if(list_first(&ready_queue) != &ready_queue) { // There is another task waiting
-        next_task = list_head_to_task_struct(list_first(&ready_queue));
+    if(list_first(&readyqueue) != &readyqueue) { // There is another task waiting
+        next_task = list_head_to_task_struct(list_first(&readyqueue));
         update_process_state_rr(next_task, NULL);
     } else { // There is no other task in ready so we activate idle_task
         next_task = idle_task;

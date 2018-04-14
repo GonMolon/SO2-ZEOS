@@ -93,6 +93,7 @@ int __attribute__((__section__(".text.main"))) main(void) {
     copy_data((void *) KERNEL_START + *p_sys_size, usr_main, *p_usr_size);
 
     printk("Entering user mode...");
+    zeos_init_auxjp();
     enable_int();
     /*
      * We return from a 'theorical' call to a 'call gate' to reduce our privileges
