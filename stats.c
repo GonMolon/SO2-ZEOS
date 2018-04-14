@@ -30,7 +30,8 @@ void update_stats(struct task_struct* task, enum event e) {
     } else if(e == BLOCKED_TO_READY) {
 
     } else if(e == QUANTUM_UPDATED) {
-        task->st.remaining_ticks = task->quantum;
+        int aux = task->quantum - current_ticks;
+        task->st.remaining_ticks = aux >= 0 ? aux : 0;
     }
     task->st.elapsed_total_ticks = current;
 }

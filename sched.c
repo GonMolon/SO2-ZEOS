@@ -105,7 +105,7 @@ void init_idle(void) {
 
 void init_task1(void) {
     struct task_struct* task1 = allocate_process();
-    set_quantum(task1, QUANTUM);
+    set_quantum(task1, DEFAULT_QUANTUM);
     allocate_DIR(task1); // Will assign to it a page directory. In fact, it will be the i'th page directory if this task is the i'th one
     set_user_pages(task1);
 
@@ -114,6 +114,7 @@ void init_task1(void) {
 }
 
 void init_sched() {
+    current_ticks = 0;
     last_PID = 0;
 
     INIT_LIST_HEAD(&free_queue);
@@ -139,6 +140,8 @@ struct task_struct* current() {
 // SCHEDULING POLICY
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+int current_ticks;
+
 void execute_scheduling() {
     update_sched_data_rr();
     if(needs_sched_rr()) {
@@ -146,17 +149,14 @@ void execute_scheduling() {
     }
 }
 
-void update_sched_data_rr() {    
-    set_quantum(current(), current()->quantum - 1);
-    if(current()->quantum <= -1) { // To avoid overflow
-        set_quantum(current(), 0);
-    }
+void update_sched_data_rr() {
+    current_ticks++;
 }
 
 int needs_sched_rr() {
     return 
         list_first(&readyqueue) != &readyqueue                // There is another process waiting
-        && (current() == idle_task || current()->quantum <= 0); // And current task is idle or its quantum is finished
+        && (current() == idle_task || current()->quantum - current_ticks <= 0); // And current task is idle or its quantum is finished
 }
 
 void add_process_to_scheduling(struct task_struct* task) {
@@ -181,8 +181,7 @@ void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
 }
 
 void sched_next_rr() {
-    if(current() != idle_task && current()->quantum != -1) { // If the task is not idle and it's not being exited, then we put it back into ready
-        set_quantum(current(), QUANTUM); // We reset its quantum before moving it back to the ready queue
+    if(current() != idle_task && get_quantum(current()) != -1) { // If the task is not idle and it's not being exited, then we put it back into ready
         update_process_state_rr(current(), &readyqueue);
     }
     struct task_struct* next_task;
@@ -194,6 +193,7 @@ void sched_next_rr() {
     }
     update_stats(current(), SYS_TO_READY);
     update_stats(next_task, READY_TO_SYS);
+    current_ticks = 0;
     task_switch(TASK_UNION(next_task));
 }
 

@@ -75,7 +75,9 @@ int get_quantum(struct task_struct* task);
 void set_quantum(struct task_struct* task, int new_quantum);
 
 /* Headers for the scheduling policy */
-#define QUANTUM 1000
+#define DEFAULT_QUANTUM 1000
+
+extern int current_ticks;
 
 void sched_next_rr();
 void update_process_state_rr(struct task_struct* task, struct list_head* dest);
