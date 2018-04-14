@@ -23,16 +23,16 @@ void perror() {
     case EINVAL:
       error_message = "Buffer size is equal or less than 0";
       break;
-    case EBUFFERNULL:
-      error_message = "Buffer address is null";
+    case EFAULT:
+      error_message = "Address is null";
       break;
-    case NOT_FREE_TASK:
+    case EAGAIN:
       error_message = "There are not free tasks to store the new process";
       break;
-    case NOT_FREE_FRAMES:
+    case ENOMEM:
       error_message = "There are not free frames to allocate the duplicated data+stack of child";
       break;
-    case INEXISTENT_PID:
+    case ESRCH:
       error_message = "There is no process with this PID";
       break;
   }

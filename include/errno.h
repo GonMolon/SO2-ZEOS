@@ -6,11 +6,11 @@
 #define EACCES      13
 #define EINVAL      22
 
-#define EBUFFERNULL 14
+#define EFAULT      14
 
-#define NOT_FREE_TASK   100
-#define NOT_FREE_FRAMES 101
-#define INEXISTENT_PID  102
+#define EAGAIN      11
+#define ENOMEM      12
+#define ESRCH       3
 
 
 #endif  /* __ERRNO_H__ */

@@ -46,7 +46,7 @@ int sys_fork() {
 
     struct task_struct* task = allocate_process();
     if(task == NULL) {
-        return -NOT_FREE_TASK;
+        return -EAGAIN;
     }
     int PID = task->PID;
 
@@ -75,7 +75,7 @@ int sys_fork() {
                 free_frame(j);
             }
             // TODO free frames
-            return -NOT_FREE_FRAMES;
+            return -ENOMEM;
         }
         data_frames[i] = new_frame;
     }
@@ -114,8 +114,12 @@ int sys_fork() {
 
 int sys_get_stats(int pid, struct stats* st) {
 
-    if(!access_ok(VERIFY_WRITE, st, sizeof(struct stats))) {
+    if(pid < 0) {
         return -EINVAL;
+    }
+
+    if(st == NULL || !access_ok(VERIFY_WRITE, st, sizeof(struct stats))) {
+        return -EFAULT;
     }
 
     for(int i = 0; i < NR_TASKS; ++i) {
@@ -125,7 +129,7 @@ int sys_get_stats(int pid, struct stats* st) {
             return 0;
         }
     }
-    return -INEXISTENT_PID;
+    return -ESRCH;
 }
 
 #define CHUNK_SIZE 256
@@ -136,7 +140,7 @@ int sys_write(int fd, char* buffer, int size) {
         return -error;
     }
     if(buffer == NULL) {
-        return -EBUFFERNULL;
+        return -EFAULT;
     }
     if(size < 0) {
         return -EINVAL;
