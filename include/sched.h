@@ -75,7 +75,7 @@ int get_quantum(struct task_struct* task);
 void set_quantum(struct task_struct* task, int new_quantum);
 
 /* Headers for the scheduling policy */
-#define DEFAULT_QUANTUM 1000
+#define DEFAULT_QUANTUM 100
 
 extern int current_ticks;
 

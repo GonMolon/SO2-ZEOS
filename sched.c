@@ -51,12 +51,11 @@ int allocate_DIR(struct task_struct* t) {
 }
 
 struct task_struct* allocate_process() {
-    struct list_head* free_task = list_first(&free_queue);
-    if(free_task == &free_queue) {
+    if(list_empty(&free_queue)) {
         return NULL;
     }
-    struct task_struct* task = list_head_to_task_struct(free_task);
-    list_del(free_task);
+    struct task_struct* task = list_head_to_task_struct(list_first(&free_queue));
+    list_del(list_first(&free_queue));
 
     task->PID = last_PID++;
     reset_stats(task);
@@ -155,7 +154,7 @@ void update_sched_data_rr() {
 
 int needs_sched_rr() {
     return 
-        list_first(&readyqueue) != &readyqueue                // There is another process waiting
+        !list_empty(&readyqueue) // There is another process waiting
         && (current() == idle_task || current()->quantum - current_ticks <= 0); // And current task is idle or its quantum is finished
 }
 
@@ -185,7 +184,7 @@ void sched_next_rr() {
         update_process_state_rr(current(), &readyqueue);
     }
     struct task_struct* next_task;
-    if(list_first(&readyqueue) != &readyqueue) { // There is another task waiting
+    if(!list_empty(&readyqueue)) { // There is another task waiting
         next_task = list_head_to_task_struct(list_first(&readyqueue));
         update_process_state_rr(next_task, NULL);
     } else { // There is no other task in ready so we activate idle_task
