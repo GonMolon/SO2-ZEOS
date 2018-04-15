@@ -63,16 +63,15 @@ struct task_struct* allocate_process() {
     return task;
 }
 
-void free_process_resources() {
-    list_add(&current()->anchor, &free_queue); // We free its PCB adding it into the free queue
-    free_user_pages(current()); // We free the phisical memory used by this process (only data). 
-                                // Ideally it should also free code frames if it were the last process in executiom
-                                // Note that apart from freeing the physical memory, it's also necessary to reset the 
-                                // page table, because if there's another future process that uses it, it would have access
-                                // to those physical frames. (That is done inside free_user_pages()). It would also be
-                                // important to "delete" their PT because if we don't do it, the advantages from the directory
-                                // scheme wouldn't exist anymore. In this particular case of ZEOS is not necessary.
-
+void free_process_resources(struct task_struct* task) {
+    update_process_state_rr(task, &free_queue); // We free its PCB adding it into the free queue
+    free_user_pages(task);  // We free the phisical memory used by this process (only data). 
+                            // Ideally it should also free code frames if it were the last process in executiom
+                            // Note that apart from freeing the physical memory, it's also necessary to reset the 
+                            // page table, because if there's another future process that uses it, it would have access
+                            // to those physical frames. (That is done inside free_user_pages()). It would also be
+                            // important to "delete" their PT because if we don't do it, the advantages from the directory
+                            // scheme wouldn't exist anymore. In this particular case of ZEOS is not necessary.
 }
 
 void cpu_idle(void) {
@@ -144,6 +143,9 @@ int current_ticks;
 void execute_scheduling() {
     update_sched_data_rr();
     if(needs_sched_rr()) {
+        if(current() != idle_task) {
+            update_process_state_rr(current(), &readyqueue);
+        }
         sched_next_rr();
     }
 }
@@ -175,9 +177,6 @@ void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
 }
 
 void sched_next_rr() {
-    if(current() != idle_task && get_quantum(current()) != -1) { // If the task is not idle and it's not being exited, then we put it back into ready
-        update_process_state_rr(current(), &readyqueue);
-    }
     struct task_struct* next_task;
     if(!list_empty(&readyqueue)) { // There is another task waiting
         next_task = list_head_to_task_struct(list_first(&readyqueue));

@@ -31,10 +31,7 @@ int sys_getpid() {
 }
 
 void sys_exit() {
-
     free_process_resources(current());
-
-    set_quantum(current(), -1); // So the scheduler knows it doesn't have to be added in ready again
     sched_next_rr();
 }
 

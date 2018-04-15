@@ -62,7 +62,7 @@ int allocate_DIR(struct task_struct* task);
 
 struct task_struct* allocate_process();
 
-void free_process_resources();
+void free_process_resources(struct task_struct* task);
 
 page_table_entry* get_PT(struct task_struct* t);
 
