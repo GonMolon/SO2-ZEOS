@@ -99,6 +99,8 @@ void init_idle(void) {
     union task_union* task_u = TASK_UNION(idle_task);
     task_u->stack[KERNEL_STACK_SIZE - 1] = (DWord) &cpu_idle;
     idle_task->kernel_esp = (DWord) &task_u->stack[KERNEL_STACK_SIZE - 2];
+
+    idle_task->state = ST_READY; 
 }
 
 void init_task1(void) {
@@ -109,6 +111,8 @@ void init_task1(void) {
 
     update_TSS(task1);  // Updating TSS
     set_cr3(get_DIR(task1)); // Updating current page directory
+
+    task1->state = ST_RUN; // Since it's going to start running
 }
 
 void init_sched() {
@@ -117,8 +121,8 @@ void init_sched() {
 
     INIT_LIST_HEAD(&free_queue);
     INIT_LIST_HEAD(&readyqueue);
-    for(int i = 1; i < NR_TASKS + 1; ++i) {
-        list_add(&protected_tasks[i].task.anchor, &free_queue);
+    for(int i = 0; i < NR_TASKS; ++i) {
+        update_process_state_rr(&tasks[i].task, &free_queue);
     }
 }
 
@@ -171,8 +175,14 @@ void add_process_to_scheduling(struct task_struct* task) {
 void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
     if(dest == NULL) {
         list_del(&task->anchor);
+        task->state = ST_RUN;
     } else {
         list_add_tail(&task->anchor, dest);
+        if(dest == &readyqueue) {
+            task->state = ST_READY;
+        } else if(dest == &free_queue) {
+            task->state = ST_ZOMBIE;
+        }
     }
 }
 

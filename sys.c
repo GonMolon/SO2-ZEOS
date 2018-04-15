@@ -121,6 +121,9 @@ int sys_get_stats(int pid, struct stats* st) {
 
     for(int i = 0; i < NR_TASKS; ++i) {
         if(tasks[i].task.PID == pid) {
+            if(tasks[i].task.state == ST_ZOMBIE) {
+                return -ESRCH;
+            }
             update_stats(&tasks[i].task, QUANTUM_UPDATED); // To refresh the remaing ticks field
             *st = tasks[i].task.st;
             return 0;
