@@ -168,12 +168,7 @@ void add_process_to_scheduling(struct task_struct* task) {
 
 void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
     if(dest == NULL) {
-        list_for_each(l, &readyqueue) { // We search for task in ready queue although
-            if(task->PID == list_head_to_task_struct(l)->PID) { // we know it will be in the first position
-                list_del(&(task->anchor));
-                break;
-            }
-        }
+        list_del(&task->anchor);
     } else {
         list_add_tail(&task->anchor, dest);
     }
