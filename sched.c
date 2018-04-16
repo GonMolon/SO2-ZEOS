@@ -151,11 +151,18 @@ void execute_scheduling() {
             update_process_state_rr(current(), &readyqueue);
         }
         sched_next_rr();
+    } else {
+        // If there is no change of context but the current process has finished its quantum, we reset it:
+        if(current()->st.remaining_ticks == 0) {
+            current_ticks = 0;
+            update_stats(current(), CURRENT_TICKS_UPDATED);
+        }
     }
 }
 
 void update_sched_data_rr() {
     current_ticks++;
+    update_stats(current(), CURRENT_TICKS_UPDATED); // To refresh the remaing ticks field
 }
 
 int needs_sched_rr() {
@@ -197,6 +204,7 @@ void sched_next_rr() {
     update_stats(current(), SYS_TO_READY);
     update_stats(next_task, READY_TO_SYS);
     current_ticks = 0;
+    update_stats(next_task, CURRENT_TICKS_UPDATED);
     task_switch(TASK_UNION(next_task));
 }
 
