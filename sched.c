@@ -55,7 +55,7 @@ struct task_struct* allocate_process() {
         return NULL;
     }
     struct task_struct* task = list_head_to_task_struct(list_first(&free_queue));
-    list_del(list_first(&free_queue));
+    list_del(&task->anchor);
 
     task->PID = last_PID++;
     reset_stats(task);
@@ -151,12 +151,6 @@ void execute_scheduling() {
             update_process_state_rr(current(), &readyqueue);
         }
         sched_next_rr();
-    } else {
-        // If there is no change of context but the current process has finished its quantum, we reset it:
-        if(current()->st.remaining_ticks == 0) {
-            current_ticks = 0;
-            update_stats(current(), CURRENT_TICKS_UPDATED);
-        }
     }
 }
 
@@ -167,8 +161,8 @@ void update_sched_data_rr() {
 
 int needs_sched_rr() {
     return 
-        !list_empty(&readyqueue) // There is another process waiting
-        && (current() == idle_task || current()->quantum - current_ticks <= 0); // And current task is idle or its quantum is finished
+        (current() == idle_task && !list_empty(&readyqueue)) // There is another process waiting and we are in idle
+        || current()->st.remaining_ticks == 0; // Or current task has finished its quantum
 }
 
 void add_process_to_scheduling(struct task_struct* task) {
