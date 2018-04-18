@@ -95,9 +95,19 @@ void setIdt() {
 }
 
 void clock_routine() {
-  zeos_ticks++;
-  zeos_show_clock();
-  execute_scheduling();
+  if(current()->state == ST_RUN) {
+    zeos_ticks++;
+    zeos_show_clock();
+    // This little hack solves the problem of receiving a clock 
+    // interrupt just after enabling interrupts but before calling 
+    // user for the first time. 
+    // That resulted in calling the scheduler in a wrong state, 
+    // and causing important integrity damages, because the stack
+    // while the kernel is initializing is the same as tasks[3],
+    // so the scheduler thought that tasks[3] was being executed 
+    // in user mode!
+    execute_scheduling();
+  }
 }
 
 void keyboard_routine() {
