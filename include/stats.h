@@ -21,7 +21,8 @@ enum event {
     USER_TO_BLOCKED,
     BLOCKED_TO_READY,
     QUANTUM_UPDATED,
-    CURRENT_TICKS_UPDATED
+    CURRENT_TICKS_UPDATED,
+    UPDATE_READY
 };
 
 struct task_struct;

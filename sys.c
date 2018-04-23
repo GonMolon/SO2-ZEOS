@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <types.h>
 #include <system.h>
+#include <stats.h>
 
 #define READ_OPERATION 0
 #define WRITE_OPERATION 1
@@ -123,6 +124,9 @@ int sys_get_stats(int pid, struct stats* st) {
         if(tasks[i].task.PID == pid) {
             if(tasks[i].task.state == ST_ZOMBIE) {
                 return -ESRCH;
+            }
+            if(tasks[i].task.state == ST_READY) {
+                update_stats(&tasks[i].task, UPDATE_READY);
             }
             *st = tasks[i].task.st;
             return 0;

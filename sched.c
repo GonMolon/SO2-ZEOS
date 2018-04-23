@@ -100,7 +100,7 @@ void init_idle(void) {
     task_u->stack[KERNEL_STACK_SIZE - 1] = (DWord) &cpu_idle;
     idle_task->kernel_esp = (DWord) &task_u->stack[KERNEL_STACK_SIZE - 2];
 
-    idle_task->state = ST_READY; 
+    idle_task->state = ST_READY;
 }
 
 void init_task1(void) {
