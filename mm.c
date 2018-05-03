@@ -268,3 +268,21 @@ int allocate_DIR(struct task_struct* t) {
   info->count++;
   return 1;
 }
+
+int get_DIR_id(page_table_entry* dir) {
+  return (dir - &dir_pages[0][0]) / (sizeof(page_table_entry) * TOTAL_PAGES);
+}
+
+void reuse_DIR(page_table_entry* dir, struct task_struct* t) {
+  t->dir_pages_baseAddr = dir;
+  int i = get_DIR_id(dir);
+  dir_status[i].count++;
+}
+
+void free_DIR(struct task_struct* t) {
+  int i = get_DIR_id(t->dir_pages_baseAddr);
+  if(--dir_status[i].count == 0) {
+    list_add(&dir_status[i].anchor, &free_dirs);
+  }
+  t->dir_pages_baseAddr = NULL;
+}

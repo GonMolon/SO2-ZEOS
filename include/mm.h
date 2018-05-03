@@ -41,5 +41,7 @@ void del_ss_pag(page_table_entry* PT, unsigned page);
 unsigned int get_frame(page_table_entry* PT, unsigned int page);
 
 int allocate_DIR(struct task_struct* task);
+void free_DIR(struct task_struct* task);
+void reuse_DIR(page_table_entry* dir, struct task_struct* t);
 
 #endif  /* __MM_H__ */

@@ -61,6 +61,7 @@ void free_process_resources(struct task_struct* task) {
                             // to those physical frames. (That is done inside free_user_pages()). It would also be
                             // important to "delete" their PT because if we don't do it, the advantages from the directory
                             // scheme wouldn't exist anymore. In this particular case of ZEOS is not necessary.
+    free_DIR(task);
 }
 
 void cpu_idle(void) {
@@ -94,8 +95,8 @@ void init_idle(void) {
 
 void init_task1(void) {
     struct task_struct* task1 = allocate_process();
+    allocate_DIR(task1);
     set_quantum(task1, DEFAULT_QUANTUM);
-    allocate_DIR(task1); // Will assign to it a page directory. In fact, it will be the i'th page directory if this task is the i'th one
     set_user_pages(task1);
 
     update_TSS(task1);  // Updating TSS
