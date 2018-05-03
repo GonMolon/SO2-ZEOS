@@ -79,8 +79,6 @@ int __attribute__((__section__(".text.main"))) main(void) {
     /* Initialize Memory */
     init_mm();
 
-    /* Initialize an address space to be used for the monoprocess version of ZeOS */
-
     /* Initialize Scheduling */
     init_sched();
 

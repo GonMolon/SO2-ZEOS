@@ -112,7 +112,13 @@ int sys_fork() {
 }
 
 int sys_clone() {
-    return 1;
+    struct task_struct* task = allocate_process();
+    if(task == NULL) {
+        return -EAGAIN;
+    }
+    int PID = task->PID;
+
+    return PID;
 }
 
 int sys_get_stats(int pid, struct stats* st) {
