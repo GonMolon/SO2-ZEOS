@@ -44,6 +44,9 @@ struct task_struct* allocate_process() {
         return NULL;
     }
     struct task_struct* task = list_head_to_task_struct(list_first(&free_queue));
+    if(allocate_DIR(task) == 0) {
+        return NULL;
+    }
     list_del(&task->anchor);
 
     task->PID = last_PID++;
@@ -84,7 +87,6 @@ void inner_task_switch(union task_union* t) {
 
 void init_idle(void) {
     idle_task = allocate_process();
-    allocate_DIR(idle_task);
 
     union task_union* task_u = TASK_UNION(idle_task);
     task_u->stack[KERNEL_STACK_SIZE - 1] = (DWord) &cpu_idle;
@@ -95,7 +97,7 @@ void init_idle(void) {
 
 void init_task1(void) {
     struct task_struct* task1 = allocate_process();
-    allocate_DIR(task1);
+
     set_quantum(task1, DEFAULT_QUANTUM);
     set_user_pages(task1);
 

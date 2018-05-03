@@ -47,6 +47,7 @@ int sys_fork() {
         return -EAGAIN;
     }
     int PID = task->PID;
+    page_table_entry* dir = task->dir_pages_baseAddr;
 
     // Copying system context from father to child
     *TASK_UNION(task) = *TASK_UNION(current());
@@ -54,14 +55,14 @@ int sys_fork() {
     // Setting child PID
     task->PID = PID;
 
+    // Setting child directory
+    task->dir_pages_baseAddr = dir;
+
     // Setting child system context to be ready for whenever it gets activated by a task_switch
     DWord* father_ebp = (DWord*) get_ebp();
     int stack_pos = (((DWord) father_ebp) & (PAGE_SIZE - 1))/4;
     TASK_UNION(task)->stack[stack_pos] = (DWord) &ret_from_fork;
     task->kernel_esp = (DWord) &TASK_UNION(task)->stack[stack_pos-1];
-
-    // Assigning a free page directory to child
-    allocate_DIR(task);
 
     // Finding free frames to store data+stack
     int data_frames[NUM_PAG_DATA];
