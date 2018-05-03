@@ -29,4 +29,6 @@ unsigned long gettime();
 
 void exit();
 
+int clone();
+
 #endif  /* __LIBC_H__ */

@@ -110,6 +110,10 @@ int sys_fork() {
     return PID;
 }
 
+int sys_clone() {
+    return 1;
+}
+
 int sys_get_stats(int pid, struct stats* st) {
 
     if(pid < 0) {

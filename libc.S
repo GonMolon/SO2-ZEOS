@@ -91,3 +91,21 @@ ENTRY(get_stats)
     popl    %ebx
     popl    %ebp
     ret
+
+
+ENTRY(clone)
+    pushl   %ebp
+    movl    %esp, %ebp
+
+    pushl   %ebx
+    movl    8(%ebp), %ebx
+    movl    12(%ebp), %ecx
+
+    movl    $19, %eax
+    int     $0x80
+
+    UPDATE_ERRNO
+    
+    popl    %ebx
+    popl    %ebp
+    ret
