@@ -122,11 +122,12 @@ int sys_get_stats(int pid, struct stats* st) {
 
     for(int i = 0; i < NR_TASKS; ++i) {
         if(tasks[i].task.PID == pid) {
-            if(tasks[i].task.state == ST_ZOMBIE) {
+            if(tasks[i].task.state == ST_INVALID) {
                 return -ESRCH;
             }
-            if(tasks[i].task.state == ST_READY) {
-                update_stats(&tasks[i].task, UPDATE_READY);
+            enum state_t state = tasks[i].task.state;
+            if(state == ST_READY || state == ST_BLOCKED) {
+               update_stats(&tasks[i].task, REFRESH); 
             }
             *st = tasks[i].task.st;
             return 0;

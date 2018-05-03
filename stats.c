@@ -34,8 +34,14 @@ void update_stats(struct task_struct* task, enum event e) {
 
         } else if(e == BLOCKED_TO_READY) {
 
-        } else if(e == UPDATE_READY) {
-            task->st.ready_ticks += incr;
+        } else if(e == REFRESH) {
+            if(task->state == ST_READY) {
+                task->st.ready_ticks += incr;
+            } else if(task->state == ST_BLOCKED) {
+                task->st.blocked_ticks += incr;
+            } else {
+                while(1); // ERROR
+            }
         }
         task->st.elapsed_total_ticks = current;
     }

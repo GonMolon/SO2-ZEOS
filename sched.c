@@ -182,7 +182,7 @@ void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
         if(dest == &readyqueue) {
             task->state = ST_READY;
         } else if(dest == &free_queue) {
-            task->state = ST_ZOMBIE;
+            task->state = ST_INVALID;
         }
     }
 }

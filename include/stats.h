@@ -22,7 +22,7 @@ enum event {
     BLOCKED_TO_READY,
     QUANTUM_UPDATED,
     CURRENT_TICKS_UPDATED,
-    UPDATE_READY
+    REFRESH
 };
 
 struct task_struct;
