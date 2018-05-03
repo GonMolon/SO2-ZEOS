@@ -265,12 +265,12 @@ int allocate_DIR(struct task_struct* t) {
   struct dir_info* info = list_entry(list_first(&free_dirs), struct dir_info, anchor);
   list_del(&info->anchor);
   t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[info->pos];
-  info->count++;
+  info->count = 1;
   return 1;
 }
 
 int get_DIR_id(page_table_entry* dir) {
-  return (dir - &dir_pages[0][0]) / (sizeof(page_table_entry) * TOTAL_PAGES);
+  return (dir - &dir_pages[0][0]) / TOTAL_PAGES;
 }
 
 void reuse_DIR(page_table_entry* dir, struct task_struct* t) {
