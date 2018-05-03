@@ -28,7 +28,14 @@ __attribute__((__section__(".data.task")));
 /* TSS */
 TSS tss; 
 
+struct dir_info {
+  int count;
+  int pos;
+  struct list_head anchor;
+};
 
+struct dir_info dir_status[NR_TASKS];
+struct list_head free_dirs;
 
 /***********************************************/
 /************** PAGING MANAGEMENT **************/
@@ -37,15 +44,18 @@ TSS tss;
 /* Init page table directory */
 
 void init_dir_pages() {
-  int i;
+  INIT_LIST_HEAD(&free_dirs);
 
-  for(i = 0; i < NR_TASKS; i++) {
+  for(int i = 0; i < NR_TASKS; i++) {
     dir_pages[i][ENTRY_DIR_PAGES].entry = 0;
     dir_pages[i][ENTRY_DIR_PAGES].bits.pbase_addr = (((unsigned int) &pagusr_table[i]) >> 12);
     dir_pages[i][ENTRY_DIR_PAGES].bits.user = 1;
     dir_pages[i][ENTRY_DIR_PAGES].bits.rw = 1;
     dir_pages[i][ENTRY_DIR_PAGES].bits.present = 1;
-
+    
+    dir_status[i].count = 0;
+    dir_status[i].pos = i;
+    list_add(&dir_status[i].anchor, &free_dirs);
   }
 }
 
@@ -244,4 +254,17 @@ void del_ss_pag(page_table_entry* PT, unsigned logical_page) {
 /* get_frame - Returns the physical frame associated to page 'logical_page' */
 unsigned int get_frame(page_table_entry* PT, unsigned int logical_page) {
   return PT[logical_page].bits.pbase_addr; 
+}
+
+
+int allocate_DIR(struct task_struct* t) {
+  if(list_empty(&free_dirs)) {
+    return 0;
+  }
+
+  struct dir_info* info = list_entry(list_first(&free_dirs), struct dir_info, anchor);
+  list_del(&info->anchor);
+  t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[info->pos];
+  info->count++;
+  return 1;
 }

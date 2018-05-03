@@ -39,17 +39,6 @@ page_table_entry* get_PT(struct task_struct* t) {
 	return (page_table_entry*)(((unsigned int)(t->dir_pages_baseAddr->bits.pbase_addr)) << 12);
 }
 
-
-int allocate_DIR(struct task_struct* t) {
-	int pos;
-
-	pos = ((int)t-(int)tasks)/sizeof(union task_union);
-
-	t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos];
-
-	return 1;
-}
-
 struct task_struct* allocate_process() {
     if(list_empty(&free_queue)) {
         return NULL;

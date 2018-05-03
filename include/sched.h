@@ -59,8 +59,6 @@ void change_context(DWord esp);
 
 struct task_struct* list_head_to_task_struct(struct list_head* l);
 
-int allocate_DIR(struct task_struct* task);
-
 struct task_struct* allocate_process();
 
 void free_process_resources(struct task_struct* task);
