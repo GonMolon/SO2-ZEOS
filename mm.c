@@ -134,7 +134,7 @@ void init_mm() {
   init_table_pages();
   init_frames();
   init_dir_pages();
-  set_cr3(&dir_pages[0]);
+  set_cr3(&dir_pages[0][0]);
   set_pe_flag();
 }
 /***********************************************/
