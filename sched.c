@@ -55,7 +55,7 @@ struct task_struct* allocate_process() {
     return task;
 }
 
-void free_process_resources(struct task_struct* task) {
+void free_process(struct task_struct* task) {
     update_process_state_rr(task, &free_queue); // We free its PCB adding it into the free queue
     free_user_pages(task);  // We free the phisical memory used by this process (only data). 
                             // Ideally it should also free code frames if it were the last process in executiom

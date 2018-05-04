@@ -32,7 +32,7 @@ int sys_getpid() {
 }
 
 void sys_exit() {
-    free_process_resources(current());
+    free_process(current());
     sched_next_rr();
 }
 
@@ -46,23 +46,21 @@ int sys_fork() {
     if(task == NULL) {
         return -EAGAIN;
     }
-    int PID = task->PID;
-    page_table_entry* dir = task->dir_pages_baseAddr;
+    // Inherit father's quantum
+    task->quantum = current()->quantum;
 
-    // Copying system context from father to child
-    *TASK_UNION(task) = *TASK_UNION(current());
+    void* father_ebp = (void*) get_ebp();
+    int stack_pos = (((DWord) father_ebp) & (PAGE_SIZE - 1))/4;
 
-    // Setting child PID
-    task->PID = PID;
-
-    // Setting child directory
-    task->dir_pages_baseAddr = dir;
+    // Copying system stack into child (Only SAVE_ALL, since we don't need the entire stack!)
+    void* from = &TASK_UNION(current())->stack[stack_pos + 1];
+    void* to = &TASK_UNION(task)->stack[stack_pos + 1];
+    int size = (DWord) (((void*) &TASK_UNION(current())->stack[KERNEL_STACK_SIZE]) - from);
+    copy_data(from, to, size);
 
     // Setting child system context to be ready for whenever it gets activated by a task_switch
-    DWord* father_ebp = (DWord*) get_ebp();
-    int stack_pos = (((DWord) father_ebp) & (PAGE_SIZE - 1))/4;
     TASK_UNION(task)->stack[stack_pos] = (DWord) &ret_from_fork;
-    task->kernel_esp = (DWord) &TASK_UNION(task)->stack[stack_pos-1];
+    task->kernel_esp = (DWord) &TASK_UNION(task)->stack[stack_pos - 1];
 
     // Finding free frames to store data+stack
     int data_frames[NUM_PAG_DATA];
@@ -108,7 +106,7 @@ int sys_fork() {
     // Adding process to ready_queue
     add_process_to_scheduling(task);
 
-    return PID;
+    return task->PID;
 }
 
 int sys_clone() {

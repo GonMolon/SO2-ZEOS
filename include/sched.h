@@ -61,7 +61,7 @@ struct task_struct* list_head_to_task_struct(struct list_head* l);
 
 struct task_struct* allocate_process();
 
-void free_process_resources(struct task_struct* task);
+void free_process(struct task_struct* task);
 
 page_table_entry* get_PT(struct task_struct* t);
 
