@@ -100,6 +100,7 @@ ENTRY(clone)
     pushl   %ebx
     movl    8(%ebp), %ebx
     movl    12(%ebp), %ecx
+    movl    $exit, %edx
 
     movl    $19, %eax
     int     $0x80

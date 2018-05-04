@@ -116,7 +116,7 @@ int sys_fork() {
     return task->PID;
 }
 
-int sys_clone(void (*function)(void), void* stack) {
+int sys_clone(void (*function)(void), void* stack, void* exit_func) {
     if(!access_ok(VERIFY_WRITE, stack, 4)) {
         return -EFAULT;
     }
@@ -130,8 +130,7 @@ int sys_clone(void (*function)(void), void* stack) {
     // Setting child system context to be ready for whenever it gets activated by a task_switch
     int stack_pos = copy_process_stack(task);
     task->kernel_esp = (DWord) &TASK_UNION(task)->stack[stack_pos];
-    // TODO make clone wrapper pass exit address as parameter so the hardcoded one is not longer necessary
-    *((DWord*) (stack + 4)) = (DWord) 0x100279; // exit function address
+    *((DWord*) (stack + 4)) = (DWord) exit_func; // exit function address
     TASK_UNION(task)->stack[KERNEL_STACK_SIZE - 2] = (DWord) (stack + 4);
     TASK_UNION(task)->stack[KERNEL_STACK_SIZE - 5] = (DWord) function;
 
