@@ -13,7 +13,7 @@ struct stats {
 };
 
 enum event {
-    PROCESS_CREATED,
+    TO_SCHEDULING,
     USER_TO_SYS,
     SYS_TO_USER,
     SYS_TO_READY,
