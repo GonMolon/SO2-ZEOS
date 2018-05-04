@@ -117,6 +117,10 @@ int sys_fork() {
 }
 
 int sys_clone(void (*function)(void), void* stack) {
+    if(!access_ok(VERIFY_WRITE, stack, 4)) {
+        return -EFAULT;
+    }
+
     struct task_struct* task = allocate_process(current()->dir_pages_baseAddr);
     if(task == NULL) {
         return -EAGAIN;
@@ -126,10 +130,10 @@ int sys_clone(void (*function)(void), void* stack) {
     // Setting child system context to be ready for whenever it gets activated by a task_switch
     int stack_pos = copy_process_stack(task);
     task->kernel_esp = (DWord) &TASK_UNION(task)->stack[stack_pos];
-    TASK_UNION(task)->stack[KERNEL_STACK_SIZE - 2] = (DWord) stack;
+    // TODO make clone wrapper pass exit address as parameter so the hardcoded one is not longer necessary
+    *((DWord*) (stack + 4)) = (DWord) 0x100279; // exit function address
+    TASK_UNION(task)->stack[KERNEL_STACK_SIZE - 2] = (DWord) (stack + 4);
     TASK_UNION(task)->stack[KERNEL_STACK_SIZE - 5] = (DWord) function;
-    // TODO check dir stack is user logic space and set the exit function address as the bottom of stack
-    // so when cloned process finishes without exit, it will be executed anyways.
 
     add_process_to_scheduling(task);
     return task->PID;

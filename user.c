@@ -3,7 +3,8 @@
 
 void test() {
     write(1, "child\n", 6);
-    exit(1);
+    // exit(1);
+    return;
 }
 
 int __attribute__ ((__section__(".text.main"))) main(void) {
