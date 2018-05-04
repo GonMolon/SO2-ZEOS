@@ -20,7 +20,9 @@ void update_stats(struct task_struct* task, enum event e) {
         unsigned long elapsed = task->st.elapsed_total_ticks;
         unsigned long current = get_ticks();
         unsigned long incr = current - elapsed;
-        if(e == USER_TO_SYS) {
+        if(e == TO_SCHEDULING) {
+            task->st.remaining_ticks = task->quantum;
+        } else if(e == USER_TO_SYS) {
             task->st.user_ticks += incr;
         } else if(e == SYS_TO_USER) {
             task->st.system_ticks += incr;

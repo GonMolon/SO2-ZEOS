@@ -50,8 +50,8 @@ struct task_struct* allocate_process() {
     list_del(&task->anchor);
 
     task->PID = last_PID++;
+    task->quantum = DEFAULT_QUANTUM;
     reset_stats(task);
-    update_stats(task, PROCESS_CREATED);
     return task;
 }
 
@@ -98,13 +98,13 @@ void init_idle(void) {
 void init_task1(void) {
     struct task_struct* task1 = allocate_process();
 
-    set_quantum(task1, DEFAULT_QUANTUM);
     set_user_pages(task1);
 
     update_TSS(task1);  // Updating TSS
     set_cr3(get_DIR(task1)); // Updating current page directory
 
     task1->state = ST_RUN; // Since it's going to start running
+    update_stats(task1, TO_SCHEDULING);
 }
 
 void init_sched() {
@@ -158,11 +158,8 @@ int needs_sched_rr() {
 }
 
 void add_process_to_scheduling(struct task_struct* task) {
-    // Reseting stats of process
-    reset_stats(task);
-    update_stats(task, PROCESS_CREATED);
-    
     update_process_state_rr(task, &readyqueue);
+    update_stats(task, TO_SCHEDULING);
 }
 
 void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
