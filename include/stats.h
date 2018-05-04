@@ -13,7 +13,7 @@ struct stats {
 };
 
 enum event {
-    TO_SCHEDULING,
+    FREE_TO_READY,
     USER_TO_SYS,
     SYS_TO_USER,
     SYS_TO_READY,

@@ -39,13 +39,17 @@ page_table_entry* get_PT(struct task_struct* t) {
 	return (page_table_entry*)(((unsigned int)(t->dir_pages_baseAddr->bits.pbase_addr)) << 12);
 }
 
-struct task_struct* allocate_process() {
+struct task_struct* allocate_process(page_table_entry* dir) {
     if(list_empty(&free_queue)) {
         return NULL;
     }
     struct task_struct* task = list_head_to_task_struct(list_first(&free_queue));
-    if(allocate_DIR(task) == 0) {
-        return NULL;
+    if(dir == NULL) {
+        if(allocate_DIR(task) == 0) {
+            return NULL;
+        }
+    } else {
+        reuse_DIR(dir, task);
     }
     list_del(&task->anchor);
 
@@ -57,6 +61,7 @@ struct task_struct* allocate_process() {
 
 void free_process(struct task_struct* task) {
     update_process_state_rr(task, &free_queue); // We free its PCB adding it into the free queue
+    // TODO Only free if it's the last thread. Move this into free_DIR
     free_user_pages(task);  // We free the phisical memory used by this process (only data). 
                             // Ideally it should also free code frames if it were the last process in executiom
                             // Note that apart from freeing the physical memory, it's also necessary to reset the 
@@ -81,12 +86,13 @@ void inner_task_switch(union task_union* t) {
 
     struct task_struct* task = &t->task;
     update_TSS(task);
+    // TODO only flush TLB if directory is different
     set_cr3(get_DIR(task));
     change_context(task->kernel_esp);
 }
 
 void init_idle(void) {
-    idle_task = allocate_process();
+    idle_task = allocate_process(NULL);
 
     union task_union* task_u = TASK_UNION(idle_task);
     task_u->stack[KERNEL_STACK_SIZE - 1] = (DWord) &cpu_idle;
@@ -96,7 +102,7 @@ void init_idle(void) {
 }
 
 void init_task1(void) {
-    struct task_struct* task1 = allocate_process();
+    struct task_struct* task1 = allocate_process(NULL);
 
     set_user_pages(task1);
 
@@ -104,7 +110,7 @@ void init_task1(void) {
     set_cr3(get_DIR(task1)); // Updating current page directory
 
     task1->state = ST_RUN; // Since it's going to start running
-    update_stats(task1, TO_SCHEDULING);
+    update_stats(task1, FREE_TO_READY);
 }
 
 void init_sched() {
@@ -159,7 +165,7 @@ int needs_sched_rr() {
 
 void add_process_to_scheduling(struct task_struct* task) {
     update_process_state_rr(task, &readyqueue);
-    update_stats(task, TO_SCHEDULING);
+    update_stats(task, FREE_TO_READY);
 }
 
 void update_process_state_rr(struct task_struct* task, struct list_head* dest) {

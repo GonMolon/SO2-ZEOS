@@ -40,24 +40,31 @@ int ret_from_fork() {
     return 0;
 }
 
+// It's important to be "inline" because get_ebp needs to return the ebp of the sys_clone
+inline int copy_process_stack(struct task_struct* task) {
+    void* father_ebp = (void*) get_ebp();
+    int stack_pos = (((DWord) father_ebp) & (PAGE_SIZE - 1))/4;
+
+    void* from = &TASK_UNION(current())->stack[stack_pos + 1];
+    void* to = &TASK_UNION(task)->stack[stack_pos + 1];
+    int size = (DWord) (((void*) &TASK_UNION(current())->stack[KERNEL_STACK_SIZE]) - from);
+    copy_data(from, to, size);
+
+    return stack_pos;
+}
+
 int sys_fork() {
 
-    struct task_struct* task = allocate_process();
+    struct task_struct* task = allocate_process(NULL);
     if(task == NULL) {
         return -EAGAIN;
     }
     // Inherit father's quantum
     task->quantum = current()->quantum;
 
-    void* father_ebp = (void*) get_ebp();
-    int stack_pos = (((DWord) father_ebp) & (PAGE_SIZE - 1))/4;
-
     // Copying system stack into child (Only SAVE_ALL, since we don't need the entire stack!)
-    void* from = &TASK_UNION(current())->stack[stack_pos + 1];
-    void* to = &TASK_UNION(task)->stack[stack_pos + 1];
-    int size = (DWord) (((void*) &TASK_UNION(current())->stack[KERNEL_STACK_SIZE]) - from);
-    copy_data(from, to, size);
-
+    int stack_pos = copy_process_stack(task);
+    
     // Setting child system context to be ready for whenever it gets activated by a task_switch
     TASK_UNION(task)->stack[stack_pos] = (DWord) &ret_from_fork;
     task->kernel_esp = (DWord) &TASK_UNION(task)->stack[stack_pos - 1];
@@ -110,13 +117,17 @@ int sys_fork() {
 }
 
 int sys_clone() {
-    struct task_struct* task = allocate_process();
+    struct task_struct* task = allocate_process(current()->dir_pages_baseAddr);
     if(task == NULL) {
         return -EAGAIN;
     }
-    int PID = task->PID;
+    task->quantum = current()->quantum;
 
-    return PID;
+    int stack_pos = copy_process_stack(task);
+    task->kernel_esp = (DWord) &TASK_UNION(task)->stack[stack_pos];
+
+    add_process_to_scheduling(task);
+    return task->PID;
 }
 
 int sys_get_stats(int pid, struct stats* st) {
