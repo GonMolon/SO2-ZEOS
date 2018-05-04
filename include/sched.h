@@ -21,6 +21,7 @@ struct task_struct {
     struct list_head anchor;
     int quantum;
     struct stats st;
+    struct list_head semaphores;
     page_table_entry* dir_pages_baseAddr;
     DWord kernel_esp;
 };
@@ -39,6 +40,16 @@ extern struct task_struct* idle_task;
 #define KERNEL_ESP(t) (DWord) &(t)->stack[KERNEL_STACK_SIZE]
 
 #define INITIAL_ESP KERNEL_ESP(&tasks[1])
+
+struct semaphore {
+    int used;
+    int count;
+    struct list_head anchor;
+    struct list_head blocked;
+};
+
+#define NR_SEMAPHORES 20
+extern struct semaphore semaphores[NR_SEMAPHORES];
 
 /* Inicialitza les dades del proces inicial */
 void init_task1(void);
@@ -82,6 +93,6 @@ void sched_next_rr();
 void update_process_state_rr(struct task_struct* task, struct list_head* dest);
 int needs_sched_rr();
 void update_sched_data_rr();
-void add_process_to_scheduling(struct task_struct* task);
+void add_process_to_scheduling(struct task_struct* task, enum event e);
 
 #endif  /* __SCHED_H__ */

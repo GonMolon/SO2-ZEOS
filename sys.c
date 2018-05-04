@@ -111,13 +111,13 @@ int sys_fork() {
     set_cr3(get_DIR(current()));
 
     // Adding process to ready_queue
-    add_process_to_scheduling(task);
+    add_process_to_scheduling(task, FREE_TO_READY);
 
     return task->PID;
 }
 
 int sys_clone(void (*function)(void), void* stack, void* exit_func) {
-    if(!access_ok(VERIFY_WRITE, stack, 4)) {
+    if(!access_ok(VERIFY_WRITE, function, 4) || !access_ok(VERIFY_WRITE, stack, 4)) {
         return -EFAULT;
     }
 
@@ -134,7 +134,7 @@ int sys_clone(void (*function)(void), void* stack, void* exit_func) {
     TASK_UNION(task)->stack[KERNEL_STACK_SIZE - 2] = (DWord) (stack + 4);
     TASK_UNION(task)->stack[KERNEL_STACK_SIZE - 5] = (DWord) function;
 
-    add_process_to_scheduling(task);
+    add_process_to_scheduling(task, FREE_TO_READY);
     return task->PID;
 }
 
@@ -195,19 +195,62 @@ unsigned long sys_gettime() {
     return zeos_ticks;
 }
 
-int sys_sem_init(int n_sem, unsigned int value){
-    
+int sys_sem_init(int n_sem, unsigned int value) {
+    if(n_sem < 0 || n_sem >= NR_SEMAPHORES) {
+        return -1;
+    }
+
+    if(value < 0) {
+        return -1;
+    }
+
+    struct semaphore* sem = &semaphores[n_sem];
+
+    if(sem->used) {
+        return -1;
+    }
+    sem->used = 1;
+    sem->count = value;
+    INIT_LIST_HEAD(&sem->blocked);
+    list_add(&sem->anchor, &current()->semaphores);
+    return 0;
 }
 
-int sys_sem_wait(int n_sem){
-    
+int sys_sem_wait(int n_sem) {
+    return 0;
 }
 
-int sys_sem_signal(int n_sem){
-    
+int sys_sem_signal(int n_sem) {
+    return 0;
 }
 
-int sys_sem_destroy(int n_sem){
+int sys_sem_destroy(int n_sem) {
+    if(n_sem < 0 || n_sem >= NR_SEMAPHORES) {
+        return -1;
+    }
     
+    struct semaphore* sem = &semaphores[n_sem];
+    if(!sem->used) {
+        return -1;
+    }
+    sem->used = 0;
+
+    int empty = list_empty(&sem->blocked);
+    list_for_each_safe(task, &sem->blocked) {
+        add_process_to_scheduling(task, BLOCKED_TO_READY);
+    }
+    if(!empty) {
+        return -1;
+    }
+
+    return 0;
+}
+
+void free_semaphores(struct task_struct* task) {
+    list_for_each(sem, &task->semaphores) {
+        struct semaphore* sem = list_entry(sem, struct semaphore, anchor);
+        int n_sem = sem - &semaphores[0];
+        sys_sem_destroy(n_sem);
+    }
 }
 

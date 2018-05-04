@@ -26,8 +26,7 @@ struct task_struct* list_head_to_task_struct(struct list_head* l) {
     return list_entry(l, struct task_struct, anchor);
 }
 
-extern struct list_head blocked;
-
+struct semaphore semaphores[NR_SEMAPHORES];
 
 /* get_DIR - Returns the Page Directory address for task 't' */
 page_table_entry* get_DIR(struct task_struct* t) {
@@ -54,14 +53,18 @@ struct task_struct* allocate_process(page_table_entry* dir) {
     list_del(&task->anchor);
 
     task->PID = last_PID++;
+    INIT_LIST_HEAD(&task->semaphores);
     task->quantum = DEFAULT_QUANTUM;
     reset_stats(task);
     return task;
 }
 
+void free_semaphores(struct task_struct* task);
+
 void free_process(struct task_struct* task) {
     update_process_state_rr(task, &free_queue); // We free its PCB adding it into the free queue
     free_DIR(task);
+    free_semaphores(task);
 }
 
 void cpu_idle(void) {
@@ -115,16 +118,21 @@ void init_sched() {
     for(int i = 0; i < NR_TASKS; ++i) {
         update_process_state_rr(&tasks[i].task, &free_queue);
     }
+
+    for(int i = 0; i < NR_SEMAPHORES; ++i) {
+        semaphores[i].used = 0;
+        semaphores[i].count = 0;
+    }
 }
 
 struct task_struct* current() {
-  int ret_value;
-  
-  __asm__ __volatile__(
-  	"movl %%esp, %0"
-	: "=g" (ret_value)
-  );
-  return (struct task_struct*)(ret_value & 0xfffff000);
+    int ret_value;
+
+    __asm__ __volatile__(
+    	"movl %%esp, %0"
+    : "=g" (ret_value)
+    );
+    return (struct task_struct*)(ret_value & 0xfffff000);
 }
 
 
@@ -156,9 +164,9 @@ int needs_sched_rr() {
         || current()->st.remaining_ticks == 0; // Or current task has finished its quantum
 }
 
-void add_process_to_scheduling(struct task_struct* task) {
+void add_process_to_scheduling(struct task_struct* task, enum event e) {
     update_process_state_rr(task, &readyqueue);
-    update_stats(task, FREE_TO_READY);
+    update_stats(task, e);
 }
 
 void update_process_state_rr(struct task_struct* task, struct list_head* dest) {

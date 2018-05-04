@@ -115,12 +115,10 @@ int list_empty(const struct list_head* head);
 /**
  * list_for_each_safe   -       iterate over a list safe against removal of list entry
  * @pos:        the &struct list_head to use as a loop counter.
- * @n:          another &struct list_head to use as temporary storage
  * @head:       the head for your list.
  */
-#define list_for_each_safe(pos, n, head) \
-        for(struct list_head* pos = (head)->next, n = pos->next; pos != (head); \
-                pos = n, n = pos->next)
+#define list_for_each_safe(pos, head) \
+        for(struct list_head *pos = (head)->next, *aux = pos->next; pos != (head); pos = aux, aux = pos->next)
 
 /**
  * list_first   -   returns the first list item
