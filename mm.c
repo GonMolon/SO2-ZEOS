@@ -281,6 +281,7 @@ void reuse_DIR(page_table_entry* dir, struct task_struct* t) {
 void free_DIR(struct task_struct* t) {
   int i = get_DIR_id(t->dir_pages_baseAddr);
   if(--dir_status[i].count == 0) {
+    free_user_pages(t);
     list_add(&dir_status[i].anchor, &free_dirs);
   }
   t->dir_pages_baseAddr = NULL;

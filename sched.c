@@ -61,14 +61,6 @@ struct task_struct* allocate_process(page_table_entry* dir) {
 
 void free_process(struct task_struct* task) {
     update_process_state_rr(task, &free_queue); // We free its PCB adding it into the free queue
-    // TODO Only free if it's the last thread. Move this into free_DIR
-    free_user_pages(task);  // We free the phisical memory used by this process (only data). 
-                            // Ideally it should also free code frames if it were the last process in executiom
-                            // Note that apart from freeing the physical memory, it's also necessary to reset the 
-                            // page table, because if there's another future process that uses it, it would have access
-                            // to those physical frames. (That is done inside free_user_pages()). It would also be
-                            // important to "delete" their PT because if we don't do it, the advantages from the directory
-                            // scheme wouldn't exist anymore. In this particular case of ZEOS is not necessary.
     free_DIR(task);
 }
 
