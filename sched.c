@@ -86,8 +86,9 @@ void inner_task_switch(union task_union* t) {
 
     struct task_struct* task = &t->task;
     update_TSS(task);
-    // TODO only flush TLB if directory is different
-    set_cr3(get_DIR(task));
+    if(current()->dir_pages_baseAddr != task->dir_pages_baseAddr) {
+        set_cr3(get_DIR(task));
+    }
     change_context(task->kernel_esp);
 }
 
