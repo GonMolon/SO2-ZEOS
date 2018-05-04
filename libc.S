@@ -110,3 +110,72 @@ ENTRY(clone)
     popl    %ebx
     popl    %ebp
     ret
+
+
+ENTRY(sem_init)
+    pushl   %ebp
+    movl    %esp, %ebp
+
+    pushl   %ebx
+    movl    8(%ebp), %ebx
+    movl    12(%ebp), %ecx
+
+    movl    $21, %eax
+    int     $0x80
+
+    UPDATE_ERRNO
+
+    popl    %ebx
+    popl    %ebp
+    ret
+
+
+ENTRY(sem_wait)
+    pushl   %ebp
+    movl    %esp, %ebp
+
+    pushl   %ebx
+    movl    8(%ebp), %ebx
+
+    movl    $22, %eax
+    int     $0x80
+
+    UPDATE_ERRNO
+
+    popl    %ebx
+    popl    %ebp
+    ret
+
+
+ENTRY(sem_signal)
+    pushl   %ebp
+    movl    %esp, %ebp
+
+    pushl   %ebx
+    movl    8(%ebp), %ebx
+
+    movl    $23, %eax
+    int     $0x80
+
+    UPDATE_ERRNO
+
+    popl    %ebx
+    popl    %ebp
+    ret
+
+
+ENTRY(sem_destroy)
+    pushl   %ebp
+    movl    %esp, %ebp
+
+    pushl   %ebx
+    movl    8(%ebp), %ebx
+
+    movl    $24, %eax
+    int     $0x80
+
+    UPDATE_ERRNO
+
+    popl    %ebx
+    popl    %ebp
+    ret

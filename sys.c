@@ -194,3 +194,20 @@ int sys_write(int fd, char* buffer, int size) {
 unsigned long sys_gettime() {
     return zeos_ticks;
 }
+
+int sys_sem_init(int n_sem, unsigned int value){
+    
+}
+
+int sys_sem_wait(int n_sem){
+    
+}
+
+int sys_sem_signal(int n_sem){
+    
+}
+
+int sys_sem_destroy(int n_sem){
+    
+}
+
