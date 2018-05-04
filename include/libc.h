@@ -29,6 +29,6 @@ unsigned long gettime();
 
 void exit();
 
-int clone();
+int clone(void (*function)(void), void* stack);
 
 #endif  /* __LIBC_H__ */
