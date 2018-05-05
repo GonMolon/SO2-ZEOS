@@ -257,7 +257,8 @@ int sys_sem_signal(int n_sem) {
     if(list_empty(&sem->blocked)) {
         ++sem->count;
     } else {
-        add_process_to_scheduling(list_head_to_task_struct(&sem->blocked), BLOCKED_TO_READY);
+        struct task_struct* task = list_head_to_task_struct(list_first(&sem->blocked));
+        add_process_to_scheduling(task, BLOCKED_TO_READY);
     }
     return 0;
 }
@@ -269,17 +270,19 @@ int sys_sem_destroy(int n_sem) {
 
     struct semaphore* sem = &semaphores[n_sem];
 
+    if(!sem->used) {
+        return -1;
+    }
+
     if(current()->PID != sem->owner->PID) {
         return -1;
     }
     
-    if(!sem->used) {
-        return -1;
-    }
     sem->used = 0;
 
     list_for_each_safe(task_anchor, &sem->blocked) {
-        add_process_to_scheduling(list_head_to_task_struct(task_anchor), BLOCKED_TO_READY);
+        struct task_struct* task = list_head_to_task_struct(task_anchor);
+        add_process_to_scheduling(task, BLOCKED_TO_READY);
     }
 
     return 0;

@@ -174,6 +174,9 @@ void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
         list_del(&task->anchor);
         task->state = ST_RUN;
     } else {
+        if(task->anchor.next != NULL && task->anchor.prev != NULL) {
+            list_del(&task->anchor);
+        }
         list_add_tail(&task->anchor, dest);
         if(dest == &readyqueue) {
             task->state = ST_READY;
