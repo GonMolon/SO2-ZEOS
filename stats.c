@@ -32,10 +32,10 @@ void update_stats(struct task_struct* task, enum event e) {
         } else if(e == READY_TO_SYS) {
             task->st.ready_ticks += incr;
             ++task->st.total_trans;
-        } else if(e == USER_TO_BLOCKED) {
-
+        } else if(e == SYS_TO_BLOCKED) {
+            task->st.system_ticks += incr;
         } else if(e == BLOCKED_TO_READY) {
-
+            task->st.blocked_ticks += incr;
         } else if(e == REFRESH) {
             if(task->state == ST_READY) {
                 task->st.ready_ticks += incr;

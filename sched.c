@@ -179,6 +179,8 @@ void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
             task->state = ST_READY;
         } else if(dest == &free_queue) {
             task->state = ST_INVALID;
+        } else {
+            task->state = ST_BLOCKED;
         }
     }
 }

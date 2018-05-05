@@ -211,12 +211,35 @@ int sys_sem_init(int n_sem, unsigned int value) {
     }
     sem->used = 1;
     sem->count = value;
+    sem->owner = current();
     INIT_LIST_HEAD(&sem->blocked);
     list_add(&sem->anchor, &current()->semaphores);
     return 0;
 }
 
 int sys_sem_wait(int n_sem) {
+    if(n_sem < 0 || n_sem >= NR_SEMAPHORES) {
+        return -1;
+    }
+
+    struct semaphore* sem = &semaphores[n_sem];
+
+    if(!sem->used) {
+        return -1;
+    }
+
+    if(sem->counter == 0) {
+        int owner_PID = sem->owner->PID;
+        update_process_state_rr(&current()->anchor, &sem->blocked);
+        update_stats(current(), SYS_TO_BLOCKED);
+        sched_next_rr();
+        if(owner_PID != sem->owner->PID || sem->owner->st == ST_INVALID) { // Check if the semaphore was removed while blocked
+            return -1;
+        }
+    } else {
+        sem->counter--;
+    }
+
     return 0;
 }
 

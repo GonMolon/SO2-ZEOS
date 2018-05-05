@@ -44,6 +44,7 @@ extern struct task_struct* idle_task;
 struct semaphore {
     int used;
     int count;
+    struct task_struct* owner;
     struct list_head anchor;
     struct list_head blocked;
 };
