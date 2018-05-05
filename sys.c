@@ -228,22 +228,37 @@ int sys_sem_wait(int n_sem) {
         return -1;
     }
 
-    if(sem->counter == 0) {
+    if(sem->count == 0) {
         int owner_PID = sem->owner->PID;
-        update_process_state_rr(&current()->anchor, &sem->blocked);
+        update_process_state_rr(current(), &sem->blocked);
         update_stats(current(), SYS_TO_BLOCKED);
         sched_next_rr();
-        if(owner_PID != sem->owner->PID || sem->owner->st == ST_INVALID) { // Check if the semaphore was removed while blocked
+        if(owner_PID != sem->owner->PID || sem->owner->state == ST_INVALID) { // Check if the semaphore was removed while blocked
             return -1;
         }
     } else {
-        sem->counter--;
+        sem->count--;
     }
 
     return 0;
 }
 
 int sys_sem_signal(int n_sem) {
+    if(n_sem < 0 || n_sem >= NR_SEMAPHORES) {
+        return -1;
+    }
+
+    struct semaphore* sem = &semaphores[n_sem];
+
+    if(!sem->used) {
+        return -1;
+    }
+
+    if(list_empty(&sem->blocked)) {
+        ++sem->count;
+    } else {
+        add_process_to_scheduling(list_head_to_task_struct(&sem->blocked), BLOCKED_TO_READY);
+    }
     return 0;
 }
 
@@ -254,7 +269,7 @@ int sys_sem_destroy(int n_sem) {
 
     struct semaphore* sem = &semaphores[n_sem];
 
-    if(current() != list_head_to_task_struct(&sem->owner)) {
+    if(current()->PID != sem->owner->PID) {
         return -1;
     }
     
@@ -263,16 +278,16 @@ int sys_sem_destroy(int n_sem) {
     }
     sem->used = 0;
 
-    list_for_each_safe(task, &sem->blocked) {
-        add_process_to_scheduling(task, BLOCKED_TO_READY);
+    list_for_each_safe(task_anchor, &sem->blocked) {
+        add_process_to_scheduling(list_head_to_task_struct(task_anchor), BLOCKED_TO_READY);
     }
 
     return 0;
 }
 
 void free_semaphores(struct task_struct* task) {
-    list_for_each(sem, &task->semaphores) {
-        struct semaphore* sem = list_entry(sem, struct semaphore, anchor);
+    list_for_each(sem_anchor, &task->semaphores) {
+        struct semaphore* sem = list_entry(sem_anchor, struct semaphore, anchor);
         int n_sem = sem - &semaphores[0];
         sys_sem_destroy(n_sem);
     }
