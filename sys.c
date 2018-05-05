@@ -279,6 +279,7 @@ int sys_sem_destroy(int n_sem) {
     }
     
     sem->used = 0;
+    list_del(&sem->anchor);
 
     list_for_each_safe(task_anchor, &sem->blocked) {
         struct task_struct* task = list_head_to_task_struct(task_anchor);
@@ -294,5 +295,6 @@ void free_semaphores(struct task_struct* task) {
         int n_sem = sem - &semaphores[0];
         sys_sem_destroy(n_sem);
     }
+    INIT_LIST_HEAD(&task->semaphores);
 }
 
