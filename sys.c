@@ -290,7 +290,7 @@ int sys_sem_destroy(int n_sem) {
 }
 
 void free_semaphores(struct task_struct* task) {
-    list_for_each(sem_anchor, &task->semaphores) {
+    list_for_each_safe(sem_anchor, &task->semaphores) {
         struct semaphore* sem = list_entry(sem_anchor, struct semaphore, anchor);
         int n_sem = sem - &semaphores[0];
         sys_sem_destroy(n_sem);
