@@ -228,19 +228,20 @@ int sys_sem_destroy(int n_sem) {
     if(n_sem < 0 || n_sem >= NR_SEMAPHORES) {
         return -1;
     }
-    
+
     struct semaphore* sem = &semaphores[n_sem];
+
+    if(current() != list_head_to_task_struct(&sem->owner)) {
+        return -1;
+    }
+    
     if(!sem->used) {
         return -1;
     }
     sem->used = 0;
 
-    int empty = list_empty(&sem->blocked);
     list_for_each_safe(task, &sem->blocked) {
         add_process_to_scheduling(task, BLOCKED_TO_READY);
-    }
-    if(!empty) {
-        return -1;
     }
 
     return 0;
