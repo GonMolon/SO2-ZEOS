@@ -197,17 +197,17 @@ unsigned long sys_gettime() {
 
 int sys_sem_init(int n_sem, unsigned int value) {
     if(n_sem < 0 || n_sem >= NR_SEMAPHORES) {
-        return -1;
+        return -EINVAL;
     }
 
     if(value < 0) {
-        return -1;
+        return -EINVAL;
     }
 
     struct semaphore* sem = &semaphores[n_sem];
 
     if(sem->used) {
-        return -1;
+        return -EBUSY;
     }
     sem->used = 1;
     sem->count = value;
@@ -219,13 +219,13 @@ int sys_sem_init(int n_sem, unsigned int value) {
 
 int sys_sem_wait(int n_sem) {
     if(n_sem < 0 || n_sem >= NR_SEMAPHORES) {
-        return -1;
+        return -EINVAL;
     }
 
     struct semaphore* sem = &semaphores[n_sem];
 
     if(!sem->used) {
-        return -1;
+        return -EINVAL;
     }
 
     if(sem->count == 0) {
@@ -245,13 +245,13 @@ int sys_sem_wait(int n_sem) {
 
 int sys_sem_signal(int n_sem) {
     if(n_sem < 0 || n_sem >= NR_SEMAPHORES) {
-        return -1;
+        return -EINVAL;
     }
 
     struct semaphore* sem = &semaphores[n_sem];
 
     if(!sem->used) {
-        return -1;
+        return -EINVAL;
     }
 
     if(list_empty(&sem->blocked)) {
@@ -265,13 +265,13 @@ int sys_sem_signal(int n_sem) {
 
 int sys_sem_destroy(int n_sem) {
     if(n_sem < 0 || n_sem >= NR_SEMAPHORES) {
-        return -1;
+        return -EINVAL;
     }
 
     struct semaphore* sem = &semaphores[n_sem];
 
     if(!sem->used) {
-        return -1;
+        return -EINVAL;
     }
 
     if(current()->PID != sem->owner->PID) {
