@@ -22,6 +22,7 @@ struct task_struct {
     int quantum;
     struct stats st;
     struct list_head semaphores;
+    int sem_deleted;
     page_table_entry* dir_pages_baseAddr;
     DWord kernel_esp;
 };

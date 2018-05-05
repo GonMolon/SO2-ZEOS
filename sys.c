@@ -233,7 +233,8 @@ int sys_sem_wait(int n_sem) {
         update_process_state_rr(current(), &sem->blocked);
         update_stats(current(), SYS_TO_BLOCKED);
         sched_next_rr();
-        if(owner_PID != sem->owner->PID || sem->owner->state == ST_INVALID) { // Check if the semaphore was removed while blocked
+        if(current()->sem_deleted) { // Check if the semaphore was removed while blocked
+            current()->sem_deleted = 0;
             return -1;
         }
     } else {
@@ -284,6 +285,7 @@ int sys_sem_destroy(int n_sem) {
     list_for_each_safe(task_anchor, &sem->blocked) {
         struct task_struct* task = list_head_to_task_struct(task_anchor);
         add_process_to_scheduling(task, BLOCKED_TO_READY);
+        task->sem_deleted = 1;
     }
 
     return 0;

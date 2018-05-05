@@ -54,6 +54,7 @@ struct task_struct* allocate_process(page_table_entry* dir) {
 
     task->PID = last_PID++;
     INIT_LIST_HEAD(&task->semaphores);
+    task->sem_deleted = 0;
     task->quantum = DEFAULT_QUANTUM;
     reset_stats(task);
     return task;
