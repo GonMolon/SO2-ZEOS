@@ -229,7 +229,6 @@ int sys_sem_wait(int n_sem) {
     }
 
     if(sem->count == 0) {
-        int owner_PID = sem->owner->PID;
         update_process_state_rr(current(), &sem->blocked);
         update_stats(current(), SYS_TO_BLOCKED);
         sched_next_rr();
