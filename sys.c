@@ -130,8 +130,8 @@ int sys_clone(void (*function)(void), void* stack, void* exit_func) {
     // Setting child system context to be ready for whenever it gets activated by a task_switch
     int stack_pos = copy_process_stack(task);
     task->kernel_esp = (DWord) &TASK_UNION(task)->stack[stack_pos];
-    *((DWord*) (stack + 4)) = (DWord) exit_func; // exit function address
-    TASK_UNION(task)->stack[KERNEL_STACK_SIZE - 2] = (DWord) (stack + 4);
+    *((DWord*) (stack - 4)) = (DWord) exit_func; // exit function address
+    TASK_UNION(task)->stack[KERNEL_STACK_SIZE - 2] = (DWord) (stack - 4);
     TASK_UNION(task)->stack[KERNEL_STACK_SIZE - 5] = (DWord) function;
 
     add_process_to_scheduling(task, FREE_TO_READY);
