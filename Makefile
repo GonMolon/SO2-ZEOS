@@ -8,7 +8,7 @@
 AS86	= as86 -0 -a
 LD86	= ld86 -0
 
-HOSTCFLAGS = -Wall -Wstrict-prototypes -g
+HOSTCFLAGS = -Wall -Wstrict-prototypes -g 
 HOSTCC 	= gcc
 CC      = gcc -m32
 AS      = as --32
@@ -27,7 +27,7 @@ SYSLDFLAGS = -T system.lds
 USRLDFLAGS = -T user.lds
 LINKFLAGS = -g
 
-SYSOBJ = interrupt.o entry.o sys_call_table.o io.o sched.o sys.o mm.o devices.o utils.o hardware.o list.o stats.o
+SYSOBJ = interrupt.o entry.o sys_call_table.o io.o sched.o sys.o mm.o devices.o utils.o hardware.o list.o stats.o keyboard.o
 
 LIBZEOS = -L . -l zeos -l auxjp
 
@@ -87,6 +87,8 @@ libc.o: libc.c libcs.o $(INCLUDEDIR)/libc.h
 mm.o: mm.c $(INCLUDEDIR)/types.h $(INCLUDEDIR)/mm.h
 
 sys.o: sys.c $(INCLUDEDIR)/devices.h $(INCLUDEDIR)/sched.h $(INCLUDEDIR)/stats.h
+
+keyboard.o: keyboard.c $(INCLUDEDIR)/keyboard.h
 
 util.s: util.S
 	$(CPP) $(ASMFLAGS) -o $@ $<
