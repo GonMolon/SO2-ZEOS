@@ -19,6 +19,7 @@ struct task_struct* idle_task;
 
 struct list_head free_queue;
 struct list_head readyqueue;
+struct list_head keyboardqueue;
 
 int last_PID;
 

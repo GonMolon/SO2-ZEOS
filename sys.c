@@ -78,7 +78,6 @@ int sys_fork() {
             for(int j = 0; j < i; ++j) {
                 free_frame(j);
             }
-            // TODO free frames
             return -ENOMEM;
         }
         data_frames[i] = new_frame;
