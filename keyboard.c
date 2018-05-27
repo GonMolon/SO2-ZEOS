@@ -51,9 +51,9 @@ void keyboard_routine() {
                     buff_to = 0;
                 }
                 if(!list_empty(&keyboardqueue)) {
-                    if(--remaining_to_read == 0 || is_buffer_full()) {
-                        struct task_struct* task = list_head_to_task_struct(list_first(task_anchor));
-                        add_process_to_scheduling(task, BLOCKED_TO_READY);
+                    if(--remaining_to_read <= 0 || is_buffer_full()) {
+                        struct task_struct* task = list_head_to_task_struct(list_first(&keyboardqueue));
+                        add_process_to_scheduling(task, BLOCKED_TO_READY, 1);
                         sched_next_rr();  
                     }
                 }
@@ -62,27 +62,29 @@ void keyboard_routine() {
     }
 }
 
-void block_in_read() {
-    update_process_state_rr(current(), &keyboardqueue);
+void block_in_read(int first) {
+    update_process_state(current(), &keyboardqueue, first);
     update_stats(current(), SYS_TO_BLOCKED);
     sched_next_rr();
 }
 
-int read_from_keyboard_buffer(char* buffer, int* size) {
+int read_from_keyboard_buffer(char* buffer, int size) {
 
 }
 
 int sys_read_keyboard(char* buffer, int size) {
     int total_size = size;
-    if(remaining_to_read == 0) {
-        size -= read_from_keyboard_buffer(buffer, &size);
-    } else {
-        block_in_read();
+
+    if(!list_empty(&keyboardqueue)) { // Another process is already reading
+        block_in_read(0);
     }
+
+    size -= read_from_keyboard_buffer(buffer, size);
     while(size > 0) {
-        remaining = size;
-        block_in_read();
-        size -= read_from_keyboard_buffer(buffer, &size);
+        remaining_to_read = size;
+        block_in_read(1);
+        size -= read_from_keyboard_buffer(buffer, size);
     }
+
     return total_size;
 }

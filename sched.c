@@ -166,19 +166,27 @@ int needs_sched_rr() {
         || current()->st.remaining_ticks == 0; // Or current task has finished its quantum
 }
 
-void add_process_to_scheduling(struct task_struct* task, enum event e) {
-    update_process_state_rr(task, &readyqueue);
+void add_process_to_scheduling(struct task_struct* task, enum event e, int is_first) {
+    update_process_state(task, &readyqueue, is_first);
     update_stats(task, e);
 }
 
 void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
+    update_process_state(task, dest, 0);
+}
+
+void update_process_state(struct task_struct* task, struct list_head* dest, int is_first) {
     if(task->anchor.next != NULL && task->anchor.prev != NULL) {
         list_del(&task->anchor);
     }
     if(dest == NULL) {
         task->state = ST_RUN;
     } else {
-        list_add_tail(&task->anchor, dest);
+        if(is_first) {
+            list_add(&task->anchor, dest);
+        } else {
+            list_add_tail(&task->anchor, dest);
+        }
         if(dest == &readyqueue) {
             task->state = ST_READY;
         } else if(dest == &free_queue) {

@@ -93,8 +93,9 @@ extern int current_ticks;
 
 void sched_next_rr();
 void update_process_state_rr(struct task_struct* task, struct list_head* dest);
+void update_process_state(struct task_struct* task, struct list_head* dest, int is_first);
 int needs_sched_rr();
 void update_sched_data_rr();
-void add_process_to_scheduling(struct task_struct* task, enum event e);
+void add_process_to_scheduling(struct task_struct* task, enum event e, int is_first);
 
 #endif  /* __SCHED_H__ */

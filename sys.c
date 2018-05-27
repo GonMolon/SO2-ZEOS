@@ -111,7 +111,7 @@ int sys_fork() {
     set_cr3(get_DIR(current()));
 
     // Adding process to ready_queue
-    add_process_to_scheduling(task, FREE_TO_READY);
+    add_process_to_scheduling(task, FREE_TO_READY, 0);
 
     return task->PID;
 }
@@ -134,7 +134,7 @@ int sys_clone(void (*function)(void), void* stack, void* exit_func) {
     TASK_UNION(task)->stack[KERNEL_STACK_SIZE - 2] = (DWord) (stack - 4);
     TASK_UNION(task)->stack[KERNEL_STACK_SIZE - 5] = (DWord) function;
 
-    add_process_to_scheduling(task, FREE_TO_READY);
+    add_process_to_scheduling(task, FREE_TO_READY, 0);
     return task->PID;
 }
 
@@ -275,7 +275,7 @@ int sys_sem_signal(int n_sem) {
         ++sem->count;
     } else {
         struct task_struct* task = list_head_to_task_struct(list_first(&sem->blocked));
-        add_process_to_scheduling(task, BLOCKED_TO_READY);
+        add_process_to_scheduling(task, BLOCKED_TO_READY, 0);
     }
     return 0;
 }
@@ -300,7 +300,7 @@ int sys_sem_destroy(int n_sem) {
 
     list_for_each_safe(task_anchor, &sem->blocked) {
         struct task_struct* task = list_head_to_task_struct(task_anchor);
-        add_process_to_scheduling(task, BLOCKED_TO_READY);
+        add_process_to_scheduling(task, BLOCKED_TO_READY, 0);
         task->sem_deleted = 1;
     }
 
