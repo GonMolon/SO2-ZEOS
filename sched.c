@@ -171,13 +171,12 @@ void add_process_to_scheduling(struct task_struct* task, enum event e) {
 }
 
 void update_process_state_rr(struct task_struct* task, struct list_head* dest) {
-    if(dest == NULL) {
+    if(task->anchor.next != NULL && task->anchor.prev != NULL) {
         list_del(&task->anchor);
+    }
+    if(dest == NULL) {
         task->state = ST_RUN;
     } else {
-        if(task->anchor.next != NULL && task->anchor.prev != NULL) {
-            list_del(&task->anchor);
-        }
         list_add_tail(&task->anchor, dest);
         if(dest == &readyqueue) {
             task->state = ST_READY;
@@ -193,10 +192,11 @@ void sched_next_rr() {
     struct task_struct* next_task;
     if(!list_empty(&readyqueue)) { // There is another task waiting
         next_task = list_head_to_task_struct(list_first(&readyqueue));
-        update_process_state_rr(next_task, NULL);
     } else { // There is no other task in ready so we activate idle_task
         next_task = idle_task;
     }
+    update_process_state_rr(next_task, NULL);
+    
     update_stats(current(), SYS_TO_READY);
     update_stats(next_task, READY_TO_SYS);
     current_ticks = 0;
