@@ -37,6 +37,10 @@ void sys_exit() {
     sched_next_rr();
 }
 
+inline int get_heap_page_size(void* heap_top) {
+    return (HEAP_START - ((int) heap_top) + PAGE_SIZE) / PAGE_SIZE;
+}
+
 int ret_from_fork() {
     return 0;
 }
@@ -73,7 +77,7 @@ int sys_fork() {
     TASK_UNION(task)->stack[stack_pos] = (DWord) &ret_from_fork;
     task->kernel_esp = (DWord) &TASK_UNION(task)->stack[stack_pos - 1];
 
-    int NUM_PAG_HEAP = (HEAP_START - ((int) current()->heap_top) + PAGE_SIZE - 1) / PAGE_SIZE;
+    int NUM_PAG_HEAP = get_heap_page_size(current()->heap_top);
     // Finding free frames to store (data+stack)+heap
     int data_frames[NUM_PAG_DATA + NUM_PAG_HEAP];
     for(int i = 0; i < NUM_PAG_DATA + NUM_PAG_HEAP; ++i) {
@@ -101,44 +105,30 @@ int sys_fork() {
     // DATA
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    // Data pages point to new frames
     for(int i = 0; i < NUM_PAG_DATA; ++i) {
-        set_ss_pag(get_PT(task), PAG_LOG_INIT_DATA + i, data_frames[i]);
-    }
-
-    // Augmenting logical address space of father temporarly to copy data
-    for(int i = 0; i < NUM_PAG_DATA; ++i) {
-        set_ss_pag(get_PT(current()), PAG_LOG_INIT_DATA + NUM_PAG_DATA + i, data_frames[i]);
-    }
-
-    // Copying data
-    copy_data((void*) (PAG_LOG_INIT_DATA*PAGE_SIZE), (void*) ((PAG_LOG_INIT_DATA + NUM_PAG_DATA)*PAGE_SIZE), PAGE_SIZE*NUM_PAG_DATA);
-
-    // Reverting previous step after having copied data
-    for(int i = 0; i < NUM_PAG_DATA; ++i) {
-        del_ss_pag(get_PT(current()), PAG_LOG_INIT_DATA + NUM_PAG_DATA + i);
+        int from_page = PAG_LOG_INIT_DATA + i;
+        int to_page = PAG_LOG_INIT_DATA + NUM_PAG_DATA + i;
+        // Data pages point to new frames
+        set_ss_pag(get_PT(task), from_page, data_frames[i]);
+        // Augmenting logical address space of father temporarly to copy data
+        set_ss_pag(get_PT(current()), to_page, data_frames[i]);
+        // Copying data
+        copy_data((void*) (from_page*PAGE_SIZE), (void*) (to_page*PAGE_SIZE), PAGE_SIZE);
+        // Reverting previous step after having copied data
+        del_ss_pag(get_PT(current()), to_page);
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%
     // HEAP
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    // Heap pages point to new frames
     for(int i = 0; i < NUM_PAG_HEAP; ++i) {
-        set_ss_pag(get_PT(task), PAG_LOG_INIT_HEAP - i, data_frames[NUM_PAG_DATA + i]);
-    }
-
-    // Augmenting logical address space of father temporarly to copy heap
-    for(int i = 0; i < NUM_PAG_HEAP; ++i) {
-        set_ss_pag(get_PT(current()), PAG_LOG_INIT_DATA + NUM_PAG_DATA*2 + NUM_PAG_HEAP - i - 1, data_frames[NUM_PAG_DATA + i]);
-    }
-
-    // Copying heap
-    copy_data((void*) ((PAG_LOG_INIT_HEAP - NUM_PAG_HEAP + 1)*PAGE_SIZE), (void*) ((PAG_LOG_INIT_DATA + NUM_PAG_DATA*2)*PAGE_SIZE), PAGE_SIZE*NUM_PAG_HEAP);
-
-    // Reverting previous step after having copied data
-    for(int i = 0; i < NUM_PAG_DATA; ++i) {
-        del_ss_pag(get_PT(current()), PAG_LOG_INIT_DATA + 2*NUM_PAG_DATA + i);
+        int from_page = PAG_LOG_INIT_HEAP - i;
+        int to_page = PAG_LOG_INIT_DATA + NUM_PAG_DATA*2 + i;
+        set_ss_pag(get_PT(task), from_page, data_frames[NUM_PAG_DATA + i]);
+        set_ss_pag(get_PT(current()), to_page, data_frames[NUM_PAG_DATA + i]);
+        copy_data((void*) (from_page*PAGE_SIZE), (void*) (to_page*PAGE_SIZE), PAGE_SIZE);
+        del_ss_pag(get_PT(current()), to_page);
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -353,6 +343,51 @@ void free_semaphores(struct task_struct* task) {
 }
 
 void* sys_sbrk(int increment) {
+    void* new_heap_top = (void*) (((int) current()->heap_top) - increment);
+    if((unsigned int) new_heap_top > HEAP_START+1) { // Check a possible overflow or a negative heap
+        return (void*) -1;
+    }
+    int HEAP_PAGES_ACT = get_heap_page_size(current()->heap_top);
+    int HEAP_PAGES_NEW = get_heap_page_size(new_heap_top);
 
+    if(HEAP_PAGES_ACT < HEAP_PAGES_NEW) { // Heap is incremented
+        int PAGES_INCR = HEAP_PAGES_NEW - HEAP_PAGES_ACT;
+
+        // Check that we don't enter in another memory region
+        for(int i = 0; i < PAGES_INCR; ++i) {
+            if(!is_ss_pag_free(get_PT(current()), PAG_LOG_INIT_HEAP - HEAP_PAGES_ACT - i)) {
+                return (void*) -1;
+            }
+        }
+
+        // Reserve new frames for the new heap pages
+        int frames[PAGES_INCR];
+        for(int i = 0; i < PAGES_INCR; ++i) {
+            int new_frame = alloc_frame();
+            if(new_frame == -1) {
+                for(int j = 0; j < i; ++j) {
+                    free_frame(frames[j]);
+                }
+                return (void*) -ENOMEM;
+            }
+            frames[i] = new_frame;
+        }
+
+        // Assign the new frames
+        for(int i = 0; i < PAGES_INCR; ++i) {
+            set_ss_pag(get_PT(current()), PAG_LOG_INIT_HEAP - HEAP_PAGES_ACT - i, frames[i]);
+        }
+    } else if(HEAP_PAGES_ACT > HEAP_PAGES_NEW) { // Heap is decremented
+        int PAGES_INCR = HEAP_PAGES_ACT - HEAP_PAGES_NEW;
+        for(int i = 0; i < PAGES_INCR; ++i) {
+            int page = PAG_LOG_INIT_HEAP - HEAP_PAGES_NEW + i;
+            free_frame(get_frame(get_PT(current()), page));
+            del_ss_pag(get_PT(current()), page);
+        }
+        set_cr3(get_DIR(current()));
+    }
+
+    current()->heap_top = new_heap_top;
+    return new_heap_top;
 }
 

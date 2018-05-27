@@ -245,6 +245,10 @@ void set_ss_pag(page_table_entry* PT, unsigned page, unsigned frame) {
 	PT[page].bits.present = 1;
 }
 
+int is_ss_pag_free(page_table_entry* PT, unsigned page) {
+  return PT[page].bits.present;
+}
+
 /* del_ss_pag - Removes mapping from logical page 'logical_page' */
 void del_ss_pag(page_table_entry* PT, unsigned logical_page) {
   PT[logical_page].entry = 0;
