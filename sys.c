@@ -77,7 +77,7 @@ int sys_fork() {
         if(new_frame == -1) {
             // Free-ing reserved frames since we don't have enought for the child
             for(int j = 0; j < i; ++j) {
-                free_frame(j);
+                free_frame(data_frames[j]);
             }
             return -ENOMEM;
         }
