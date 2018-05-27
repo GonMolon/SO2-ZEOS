@@ -1,7 +1,7 @@
 #ifndef __KEYBOARD_H__
 #define __KEYBOARD_H__
 
-void keyboard_init();
+void init_keyboard();
 void keyboard_routine();
 int sys_read_keyboard(char* buffer, int size);
 

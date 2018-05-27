@@ -1,5 +1,8 @@
 #include <keyboard.h>
 #include <io.h>
+#include <list.h>
+#include <sched.h>
+#include <stats.h>
 
 char char_map[] = {
     '\0','\0','1','2','3','4','5','6',
@@ -28,7 +31,7 @@ inline int is_buffer_full() {
     return buff_from - buff_to == 1 || (buff_from == 0 && buff_to == KEYBOARD_BUFFER_SIZE - 1);
 }
 
-void keyboard_init() {
+void init_keyboard() {
     buff_from = 0;
     buff_to = 0;
     INIT_LIST_HEAD(&keyboardqueue);
@@ -56,6 +59,12 @@ void keyboard_routine() {
     }
 }
 
+void block_in_read() {
+    update_process_state_rr(current(), &keyboardqueue);
+    update_stats(current(), SYS_TO_BLOCKED);
+    sched_next_rr();
+}
+
 int read_from_keyboard_buffer(char* buffer, int* size) {
 
 }
@@ -65,15 +74,11 @@ int sys_read_keyboard(char* buffer, int size) {
     if(list_empty(&keyboardqueue)) {
         size -= read_from_keyboard_buffer(buffer, &size);
     } else {
-        update_process_state_rr(current(), &keyboardqueue);
-        update_stats(current(), SYS_TO_BLOCKED);
-        sched_next_rr();
+        block_in_read();
     }
     while(size > 0) {
         remaining = size;
-        update_process_state_rr(current(), &keyboardqueue);
-        update_stats(current(), SYS_TO_BLOCKED);
-        sched_next_rr();
+        block_in_read();
         size -= read_from_keyboard_buffer(buffer, &size);
     }
     return total_size;

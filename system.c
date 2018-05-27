@@ -5,7 +5,7 @@
 #include <types.h>
 #include <interrupt.h>
 #include <hardware.h>
-#include <keybaord.h>
+#include <keyboard.h>
 #include <system.h>
 #include <sched.h>
 #include <mm.h>
