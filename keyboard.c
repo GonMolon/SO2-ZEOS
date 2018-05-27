@@ -25,7 +25,7 @@ char keyboard_buffer[KEYBOARD_BUFFER_SIZE];
 int buff_from;
 int buff_to;
 struct list_head keyboardqueue;
-int remaining;
+int remaining_to_read;
 
 inline int is_buffer_full() {
     return buff_from - buff_to == 1 || (buff_from == 0 && buff_to == KEYBOARD_BUFFER_SIZE - 1);
@@ -34,6 +34,7 @@ inline int is_buffer_full() {
 void init_keyboard() {
     buff_from = 0;
     buff_to = 0;
+    remaining_to_read = 0;
     INIT_LIST_HEAD(&keyboardqueue);
 }
 
@@ -50,8 +51,10 @@ void keyboard_routine() {
                     buff_to = 0;
                 }
                 if(!list_empty(&keyboardqueue)) {
-                    if(--remaining == 0 || is_buffer_full()) {
-                        
+                    if(--remaining_to_read == 0 || is_buffer_full()) {
+                        struct task_struct* task = list_head_to_task_struct(list_first(task_anchor));
+                        add_process_to_scheduling(task, BLOCKED_TO_READY);
+                        sched_next_rr();  
                     }
                 }
             }
@@ -71,7 +74,7 @@ int read_from_keyboard_buffer(char* buffer, int* size) {
 
 int sys_read_keyboard(char* buffer, int size) {
     int total_size = size;
-    if(list_empty(&keyboardqueue)) {
+    if(remaining_to_read == 0) {
         size -= read_from_keyboard_buffer(buffer, &size);
     } else {
         block_in_read();
