@@ -52,6 +52,9 @@ void keyboard_routine() {
                 }
                 if(!list_empty(&keyboardqueue)) {
                     if(--remaining_to_read <= 0 || is_buffer_full()) {
+                        if(current() != idle_task) {
+                            add_process_to_scheduling(current(), SYS_TO_READY, 0);
+                        }
                         struct task_struct* task = list_head_to_task_struct(list_first(&keyboardqueue));
                         add_process_to_scheduling(task, BLOCKED_TO_READY, 1);
                         sched_next_rr();  
