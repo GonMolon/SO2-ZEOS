@@ -63,6 +63,9 @@ int sys_fork() {
     // Inherit father's quantum
     task->quantum = current()->quantum;
 
+    // Inherit father's heap
+    task->heap_top = current()->heap_top;
+
     // Copying system stack into child (Only SAVE_ALL, since we don't need the entire stack!)
     int stack_pos = copy_process_stack(task);
     
@@ -70,9 +73,10 @@ int sys_fork() {
     TASK_UNION(task)->stack[stack_pos] = (DWord) &ret_from_fork;
     task->kernel_esp = (DWord) &TASK_UNION(task)->stack[stack_pos - 1];
 
-    // Finding free frames to store data+stack
-    int data_frames[NUM_PAG_DATA];
-    for(int i = 0; i < NUM_PAG_DATA; ++i) {
+    int NUM_PAG_HEAP = (HEAP_START - ((int) current()->heap_top) + PAGE_SIZE - 1) / PAGE_SIZE;
+    // Finding free frames to store (data+stack)+heap
+    int data_frames[NUM_PAG_DATA + NUM_PAG_HEAP];
+    for(int i = 0; i < NUM_PAG_DATA + NUM_PAG_HEAP; ++i) {
         int new_frame = alloc_frame();
         if(new_frame == -1) {
             // Free-ing reserved frames since we don't have enought for the child
@@ -84,10 +88,18 @@ int sys_fork() {
         data_frames[i] = new_frame;
     }
 
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%
+    // CODE
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     // Copying code pages (the code pages point to the same frames as the father)
     for(int i = 0; i < NUM_PAG_CODE; ++i) {
         get_PT(task)[PAG_LOG_INIT_CODE + i] = get_PT(current())[PAG_LOG_INIT_CODE + i];
     }
+
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%
+    // DATA
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     // Data pages point to new frames
     for(int i = 0; i < NUM_PAG_DATA; ++i) {
@@ -100,12 +112,36 @@ int sys_fork() {
     }
 
     // Copying data
-    copy_data((void*) L_USER_START + NUM_PAG_CODE*PAGE_SIZE, (void*) L_USER_START + (NUM_PAG_CODE+NUM_PAG_DATA)*PAGE_SIZE, PAGE_SIZE*NUM_PAG_DATA);
+    copy_data((void*) (PAG_LOG_INIT_DATA*PAGE_SIZE), (void*) ((PAG_LOG_INIT_DATA + NUM_PAG_DATA)*PAGE_SIZE), PAGE_SIZE*NUM_PAG_DATA);
 
     // Reverting previous step after having copied data
     for(int i = 0; i < NUM_PAG_DATA; ++i) {
         del_ss_pag(get_PT(current()), PAG_LOG_INIT_DATA + NUM_PAG_DATA + i);
     }
+
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%
+    // HEAP
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    // Heap pages point to new frames
+    for(int i = 0; i < NUM_PAG_HEAP; ++i) {
+        set_ss_pag(get_PT(task), PAG_LOG_INIT_HEAP - i, data_frames[NUM_PAG_DATA + i]);
+    }
+
+    // Augmenting logical address space of father temporarly to copy heap
+    for(int i = 0; i < NUM_PAG_HEAP; ++i) {
+        set_ss_pag(get_PT(current()), PAG_LOG_INIT_DATA + NUM_PAG_DATA*2 + NUM_PAG_HEAP - i - 1, data_frames[NUM_PAG_DATA + i]);
+    }
+
+    // Copying heap
+    copy_data((void*) ((PAG_LOG_INIT_HEAP - NUM_PAG_HEAP + 1)*PAGE_SIZE), (void*) ((PAG_LOG_INIT_DATA + NUM_PAG_DATA*2)*PAGE_SIZE), PAGE_SIZE*NUM_PAG_HEAP);
+
+    // Reverting previous step after having copied data
+    for(int i = 0; i < NUM_PAG_DATA; ++i) {
+        del_ss_pag(get_PT(current()), PAG_LOG_INIT_DATA + 2*NUM_PAG_DATA + i);
+    }
+
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     // Flush TLB
     set_cr3(get_DIR(current()));
@@ -314,5 +350,9 @@ void free_semaphores(struct task_struct* task) {
         sys_sem_destroy(n_sem);
     }
     INIT_LIST_HEAD(&task->semaphores);
+}
+
+void* sys_sbrk(int increment) {
+
 }
 
