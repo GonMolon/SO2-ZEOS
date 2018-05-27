@@ -150,6 +150,7 @@ void execute_scheduling() {
         if(current() != idle_task) {
             update_process_state_rr(current(), &readyqueue);
         }
+        update_stats(current(), SYS_TO_READY);
         sched_next_rr();
     }
 }
@@ -196,8 +197,7 @@ void sched_next_rr() {
         next_task = idle_task;
     }
     update_process_state_rr(next_task, NULL);
-    
-    update_stats(current(), SYS_TO_READY);
+
     update_stats(next_task, READY_TO_SYS);
     current_ticks = 0;
     update_stats(next_task, CURRENT_TICKS_UPDATED);
