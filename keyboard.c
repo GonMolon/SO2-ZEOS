@@ -69,7 +69,16 @@ void block_in_read(int first) {
 }
 
 int read_from_keyboard_buffer(char* buffer, int size) {
+    int count = 0;
 
+    while(size-- > 0 && buff_from != buff_to) {
+        buffer[count++] = keyboard_buffer[buff_from++];
+        if(buff_from == KEYBOARD_BUFFER_SIZE) {
+            buff_from = 0;
+        }
+    }
+
+    return count;
 }
 
 int sys_read_keyboard(char* buffer, int size) {
@@ -83,7 +92,7 @@ int sys_read_keyboard(char* buffer, int size) {
     while(size > 0) {
         remaining_to_read = size;
         block_in_read(1);
-        size -= read_from_keyboard_buffer(buffer, size);
+        size -= read_from_keyboard_buffer(&buffer[total_size-size], size);
     }
 
     return total_size;
