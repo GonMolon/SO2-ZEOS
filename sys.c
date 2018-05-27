@@ -11,6 +11,7 @@
 #include <types.h>
 #include <system.h>
 #include <stats.h>
+#include <keyboard.h>
 
 #define READ_OPERATION 0
 #define WRITE_OPERATION 1
@@ -188,10 +189,6 @@ int sys_write(int fd, char* buffer, int size) {
         return error;
     }
     return size;
-}
-
-int sys_read_keyboard(char* buffer, int size) {
-
 }
 
 int sys_read(int fd, char* buffer, int size) {
