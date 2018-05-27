@@ -168,7 +168,7 @@ int sys_get_stats(int pid, struct stats* st) {
 int sys_write(int fd, char* buffer, int size) {
     int error = check_fd(fd, WRITE_OPERATION);
     if(error < 0) {
-        return -error;
+        return error;
     }
     if(buffer == NULL) {
         return -EFAULT;
@@ -197,7 +197,7 @@ int sys_read_keyboard(char* buffer, int size) {
 int sys_read(int fd, char* buffer, int size) {
     int error = check_fd(fd, READ_OPERATION);
     if(error < 0) {
-        return -error;
+        return error;
     }
     if(buffer == NULL) {
         return -EFAULT;
