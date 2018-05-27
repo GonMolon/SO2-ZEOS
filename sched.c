@@ -53,6 +53,7 @@ struct task_struct* allocate_process(page_table_entry* dir) {
     list_del(&task->anchor);
 
     task->PID = last_PID++;
+    task->heap_top = HEAP_START;
     INIT_LIST_HEAD(&task->semaphores);
     task->sem_deleted = 0;
     task->quantum = DEFAULT_QUANTUM;

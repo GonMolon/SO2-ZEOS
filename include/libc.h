@@ -41,4 +41,6 @@ int sem_signal(int n_sem);
 
 int sem_destroy(int n_sem);
 
+void* sbrk(int increment);
+
 #endif  /* __LIBC_H__ */

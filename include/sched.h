@@ -25,6 +25,7 @@ struct task_struct {
     int sem_deleted;
     page_table_entry* dir_pages_baseAddr;
     DWord kernel_esp;
+    void* heap_top;
 };
 
 union task_union {

@@ -198,3 +198,20 @@ ENTRY(sem_destroy)
     popl    %ebx
     popl    %ebp
     ret
+
+
+ENTRY(sbrk)
+    pushl   %ebp
+    movl    %esp, %ebp
+
+    pushl   %ebx
+    movl    8(%ebp), %ebx
+
+    movl    $25, %eax
+    int     $0x80
+
+    UPDATE_ERRNO
+
+    popl    %ebx
+    popl    %ebp
+    ret

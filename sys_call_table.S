@@ -27,7 +27,7 @@ ENTRY(sys_call_table)
     .long sys_sem_wait      // 22
     .long sys_sem_signal    // 23
     .long sys_sem_destroy   // 24
-    .long sys_ni_syscall    // 25
+    .long sys_sbrk          // 25
     .long sys_ni_syscall    // 26
     .long sys_ni_syscall    // 27
     .long sys_ni_syscall    // 28
