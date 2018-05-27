@@ -41,6 +41,25 @@ ENTRY(write)
     ret
 
 
+ENTRY(read)
+    pushl   %ebp
+    movl    %esp, %ebp
+    pushl   %ebx
+
+    movl    8(%ebp), %ebx
+    movl    12(%ebp), %ecx
+    movl    16(%ebp), %edx
+
+    movl    $5, %eax
+    int     $0x80
+
+    UPDATE_ERRNO
+
+    popl    %ebx
+    popl    %ebp
+    ret
+
+
 ENTRY(gettime)
     // Choosing the system call identifier
     movl    $10, %eax

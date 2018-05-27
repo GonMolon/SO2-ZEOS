@@ -190,6 +190,27 @@ int sys_write(int fd, char* buffer, int size) {
     return size;
 }
 
+int sys_read_keyboard(char* buffer, int size) {
+
+}
+
+int sys_read(int fd, char* buffer, int size) {
+    int error = check_fd(fd, READ_OPERATION);
+    if(error < 0) {
+        return -error;
+    }
+    if(buffer == NULL) {
+        return -EFAULT;
+    }
+    if(size < 0) {
+        return -EINVAL;
+    }
+    if(!access_ok(VERIFY_WRITE, buffer, size)) {
+        return -EACCES;
+    }
+    return sys_read_keyboard(buffer, size);
+}
+
 unsigned long sys_gettime() {
     return zeos_ticks;
 }
