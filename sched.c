@@ -61,6 +61,7 @@ struct task_struct* allocate_process(page_table_entry* dir) {
     return task;
 }
 
+// Defined in sys.c. This forward declaration is due to a circular dependendy
 void free_semaphores(struct task_struct* task);
 
 void free_process(struct task_struct* task) {

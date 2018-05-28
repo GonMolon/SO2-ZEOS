@@ -380,7 +380,7 @@ void* sys_sbrk(int increment) {
     } else if(HEAP_PAGES_ACT > HEAP_PAGES_NEW) { // Heap is decremented
         int PAGES_INCR = HEAP_PAGES_ACT - HEAP_PAGES_NEW;
         for(int i = 0; i < PAGES_INCR; ++i) {
-            int page = PAG_LOG_INIT_HEAP - HEAP_PAGES_NEW + i;
+            int page = PAG_LOG_INIT_HEAP - HEAP_PAGES_NEW - i;
             free_frame(get_frame(get_PT(current()), page));
             del_ss_pag(get_PT(current()), page);
         }
