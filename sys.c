@@ -38,7 +38,7 @@ void sys_exit() {
 }
 
 inline int get_heap_page_size(void* heap_top) {
-    return (HEAP_START - ((int) heap_top) + PAGE_SIZE) / PAGE_SIZE;
+    return (HEAP_START - ((int) heap_top + 1) + PAGE_SIZE) / PAGE_SIZE;
 }
 
 int ret_from_fork() {
@@ -343,20 +343,29 @@ void free_semaphores(struct task_struct* task) {
 }
 
 void* sys_sbrk(int increment) {
+    if(increment == 0) {
+        return current()->heap_top;
+    }
+
     void* new_heap_top = (void*) (((int) current()->heap_top) - increment);
-    if((unsigned int) new_heap_top > HEAP_START+1) { // Check a possible overflow or a negative heap
-        return (void*) -1;
+    if((unsigned int) new_heap_top > HEAP_START) {
+        if(increment < 0) {
+            new_heap_top = (void*) HEAP_START;
+        } else {
+            return (void*) -ENOMEM; // Overflow
+        }
     }
     int HEAP_PAGES_ACT = get_heap_page_size(current()->heap_top);
     int HEAP_PAGES_NEW = get_heap_page_size(new_heap_top);
 
+    void* result;
     if(HEAP_PAGES_ACT < HEAP_PAGES_NEW) { // Heap is incremented
         int PAGES_INCR = HEAP_PAGES_NEW - HEAP_PAGES_ACT;
 
         // Check that we don't enter in another memory region
         for(int i = 0; i < PAGES_INCR; ++i) {
             if(!is_ss_pag_free(get_PT(current()), PAG_LOG_INIT_HEAP - HEAP_PAGES_ACT - i)) {
-                return (void*) -1;
+                return (void*) -ENOMEM;
             }
         }
 
@@ -377,17 +386,23 @@ void* sys_sbrk(int increment) {
         for(int i = 0; i < PAGES_INCR; ++i) {
             set_ss_pag(get_PT(current()), PAG_LOG_INIT_HEAP - HEAP_PAGES_ACT - i, frames[i]);
         }
-    } else if(HEAP_PAGES_ACT > HEAP_PAGES_NEW) { // Heap is decremented
+
+        result = new_heap_top + 1; // Since we need to return the first writeable byte
+
+    } else { // Heap is decremented
         int PAGES_INCR = HEAP_PAGES_ACT - HEAP_PAGES_NEW;
+        
+        // Free the removed pages and its respective frames
         for(int i = 0; i < PAGES_INCR; ++i) {
             int page = PAG_LOG_INIT_HEAP - HEAP_PAGES_NEW - i;
             free_frame(get_frame(get_PT(current()), page));
             del_ss_pag(get_PT(current()), page);
         }
         set_cr3(get_DIR(current()));
+        result = new_heap_top;
     }
 
     current()->heap_top = new_heap_top;
-    return new_heap_top;
+    return result;
 }
 
