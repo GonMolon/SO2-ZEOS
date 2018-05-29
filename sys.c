@@ -17,9 +17,14 @@
 #define WRITE_OPERATION 1
 
 int check_fd(int fd, int permissions) {
-    if(fd != 1) return -EBADF; /*EBADF*/
-    if(permissions != WRITE_OPERATION) {
-        return -EACCES; /*EACCES*/
+    if(fd != 0 && fd != 1) {
+        return -EBADF; /*EBADF*/
+    }
+    if(fd == 1 && permissions != WRITE_OPERATION) {
+        return -EBADF;
+    }
+    if(fd == 0 && permissions != READ_OPERATION) {
+        return -EBADF;
     }
     return 0;
 }
@@ -218,10 +223,10 @@ int sys_write(int fd, char* buffer, int size) {
 }
 
 int sys_read(int fd, char* buffer, int size) {
-    // int error = check_fd(fd, READ_OPERATION);
-    // if(error < 0) {
-    //     return error;
-    // }
+    int error = check_fd(fd, READ_OPERATION);
+    if(error < 0) {
+        return error;
+    }
     if(buffer == NULL) {
         return -EFAULT;
     }
@@ -229,7 +234,7 @@ int sys_read(int fd, char* buffer, int size) {
         return -EINVAL;
     }
     if(!access_ok(VERIFY_WRITE, buffer, size)) {
-        return -EACCES;
+        return -EFAULT;
     }
     return sys_read_keyboard(buffer, size);
 }
