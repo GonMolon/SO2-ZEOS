@@ -108,7 +108,7 @@ int sys_fork() {
 
     for(int i = 0; i < NUM_PAG_DATA; ++i) {
         int from_page = PAG_LOG_INIT_DATA + i;
-        int to_page = PAG_LOG_INIT_DATA + NUM_PAG_DATA + i;
+        int to_page = PAG_LOG_INIT_HEAP + 1 + i;
         // Data pages point to new frames
         set_ss_pag(get_PT(task), from_page, data_frames[i]);
         // Augmenting logical address space of father temporarly to copy data
@@ -125,7 +125,7 @@ int sys_fork() {
 
     for(int i = 0; i < NUM_PAG_HEAP; ++i) {
         int from_page = PAG_LOG_INIT_HEAP - i;
-        int to_page = PAG_LOG_INIT_DATA + NUM_PAG_DATA*2 + i;
+        int to_page = PAG_LOG_INIT_HEAP + 1 + NUM_PAG_DATA + i;
         set_ss_pag(get_PT(task), from_page, data_frames[NUM_PAG_DATA + i]);
         set_ss_pag(get_PT(current()), to_page, data_frames[NUM_PAG_DATA + i]);
         copy_data((void*) (from_page*PAGE_SIZE), (void*) (to_page*PAGE_SIZE), PAGE_SIZE);
