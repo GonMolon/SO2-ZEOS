@@ -220,12 +220,16 @@ int alloc_frame(void) {
 }
 
 void free_user_pages(struct task_struct* task) {
-  int pag;
   page_table_entry* process_PT = get_PT(task);
     /* DATA */
-  for(pag = 0; pag < NUM_PAG_DATA; pag++){
+  for(int pag = 0; pag < NUM_PAG_DATA; ++pag){
     free_frame(process_PT[PAG_LOG_INIT_DATA+pag].bits.pbase_addr);
     process_PT[PAG_LOG_INIT_DATA+pag].entry = 0;
+  }
+
+  for(int pag = 0; pag < get_heap_page_size(task->heap_top); ++pag) {
+    free_frame(process_PT[PAG_LOG_INIT_HEAP-pag].bits.pbase_addr);
+    process_PT[PAG_LOG_INIT_HEAP+pag].entry = 0;
   }
 }
 
@@ -259,6 +263,9 @@ unsigned int get_frame(page_table_entry* PT, unsigned int logical_page) {
   return PT[logical_page].bits.pbase_addr; 
 }
 
+inline int get_heap_page_size(void* heap_top) {
+    return (HEAP_START - ((int) heap_top + 1) + PAGE_SIZE) / PAGE_SIZE;
+}
 
 int allocate_DIR(struct task_struct* t) {
   if(list_empty(&free_dirs)) {

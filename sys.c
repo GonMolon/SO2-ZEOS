@@ -42,10 +42,6 @@ void sys_exit() {
     sched_next_rr();
 }
 
-inline int get_heap_page_size(void* heap_top) {
-    return (HEAP_START - ((int) heap_top + 1) + PAGE_SIZE) / PAGE_SIZE;
-}
-
 int ret_from_fork() {
     return 0;
 }
