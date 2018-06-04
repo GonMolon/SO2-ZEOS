@@ -11,4 +11,6 @@ void clock_handler();
 
 void keyboard_handler();
 
+void pf_handler();
+
 #endif  /* __ENTRY_H__ */

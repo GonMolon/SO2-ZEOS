@@ -7,6 +7,7 @@
 #include <segment.h>
 #include <hardware.h>
 #include <sched.h>
+#include <utils.h>
 
 Byte phys_mem[TOTAL_PAGES];
 Byte cow_count_mem[TOTAL_PAGES];
@@ -247,7 +248,7 @@ void free_frame(unsigned int frame) {
 }
 
 /* set_ss_pag - Associates logical page 'page' with physical page 'frame' */
-void set_ss_pag(page_table_entry* PT, unsigned page, unsigned frame) {
+void set_ss_pag(page_table_entry* PT, unsigned int page, unsigned int frame) {
 	PT[page].entry = 0;
 	PT[page].bits.pbase_addr = frame;
 	PT[page].bits.user = 1;
@@ -255,23 +256,33 @@ void set_ss_pag(page_table_entry* PT, unsigned page, unsigned frame) {
 	PT[page].bits.present = 1;
 }
 
-void set_ro_page(page_table_entry* PT, unsigned page) {
+void set_ro_page(page_table_entry* PT, unsigned int page) {
   PT[page].bits.rw = 0;
 }
 
-void share_cow_page(page_table_entry* tp_source, page_table_entry* tp_dest, unsigned num_pag_log) {
-  unsigned int frame = get_frame(tp_source, num_pag_log);
-  set_ss_pag(tp_dest, num_pag_log, frame);
-  set_ro_page(tp_source, num_pag_log);
-  set_ro_page(tp_dest, num_pag_log);
+void share_cow_page(page_table_entry* pt_source, page_table_entry* pt_dest, unsigned int num_pag_log) {
+  unsigned int frame = get_frame(pt_source, num_pag_log);
+  if(++cow_count_mem[frame] == 1) {
+    cow_count_mem[frame]++;
+  }
+  set_ss_pag(pt_dest, num_pag_log, frame);
+  set_ro_page(pt_source, num_pag_log);
+  set_ro_page(pt_dest, num_pag_log);
 }
 
-int is_ss_pag_free(page_table_entry* PT, unsigned page) {
+void copy_frame(page_table_entry* PT, unsigned int page, unsigned int frame) {
+  set_ss_pag(PT, PAG_LOG_INIT_HEAP + 1, frame);
+  copy_data((void*) (page*PAGE_SIZE), (void*) ((PAG_LOG_INIT_HEAP + 1)*PAGE_SIZE), PAGE_SIZE);
+  del_ss_pag(PT, PAG_LOG_INIT_HEAP + 1);
+  set_cr3(get_DIR(current()));
+}
+
+int is_ss_pag_free(page_table_entry* PT, unsigned int page) {
   return !PT[page].bits.present;
 }
 
 /* del_ss_pag - Removes mapping from logical page 'logical_page' */
-void del_ss_pag(page_table_entry* PT, unsigned logical_page) {
+void del_ss_pag(page_table_entry* PT, unsigned int logical_page) {
   PT[logical_page].entry = 0;
 }
 

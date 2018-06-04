@@ -65,6 +65,7 @@ void setIdt() {
   
   // Exception handlers
   set_handlers();
+  setInterruptHandler(14, pf_handler, 0);
 
   // Interrupt handlers
   setInterruptHandler(32, clock_handler, 0);

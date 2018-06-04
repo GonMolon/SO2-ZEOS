@@ -96,6 +96,7 @@ end:
     RESTORE_ALL
     iret
 
+
 ENTRY(clock_handler)
     SAVE_ALL
     EOI
@@ -105,6 +106,7 @@ ENTRY(clock_handler)
     RESTORE_ALL
     iret
 
+
 ENTRY(keyboard_handler)
     SAVE_ALL
     EOI
@@ -112,4 +114,17 @@ ENTRY(keyboard_handler)
     call    keyboard_routine
     call    update_leaving_sys
     RESTORE_ALL
+    iret
+
+
+ENTRY(pf_handler)
+    SAVE_ALL
+    EOI
+    movl    %cr2, %ebx
+    pushl   %ebx
+    call    pf_rsi
+    popl    %ebx
+    RESTORE_ALL
+    movl    %ebx, 0(%esp)
+    popl    %ebx // Removing page fault error code
     iret

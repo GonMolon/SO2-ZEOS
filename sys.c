@@ -383,3 +383,29 @@ void* sys_sbrk(int increment) {
     return result;
 }
 
+void pf_rsi(void* address) {
+    if(!access_ok(VERIFY_WRITE, address, 1)) {
+        sys_write_console("WRONG ACCESS", 12);
+        while(1);
+    }
+
+    int log_page = PH_PAGE((int) address);
+    int frame = get_frame(get_PT(current()), log_page);
+
+    if(cow_count_mem[frame] == 1) {
+        cow_count_mem[frame] = 0;
+        set_ss_pag(get_PT(current()), log_page, frame);
+    } else if(cow_count_mem[frame] >= 2) {
+        cow_count_mem[frame]--;
+        int frame_new = alloc_frame();
+        if(frame_new == -1) {
+           sys_write_console("NOT ENOUGH PHYSICAL MEMORY", 26);
+           while(1); 
+        }
+        copy_frame(get_PT(current()), log_page, frame_new);
+        set_ss_pag(get_PT(current()), log_page, frame_new);
+    } else {
+        sys_write_console("KERNEL PANIC", 15);
+        while(1);
+    }
+}
