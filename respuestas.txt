@@ -1,0 +1,44 @@
+Gonzalo Solera
+
+
+
+
+1-
+
+e)
+No hace falta, ya que todos los threads compartirán el mismo directorio y por naturaleza del clone, 
+se comparten las páginas físicas después de una escritura.
+Si uno de estos threads ejecuta un fork posteriormente, el frame se marcará compartido y se realizará la copia cuando 
+uno de los threads o el hijo del fork realizen una escritura en ese frame, pero no hace falta ningún tratamiento extra, ya que 
+si cambia el frame de esa página lógica, se modificará la tabla de páginas común entre todos los threads.
+
+f)
+No hace falta, ya que al liberar los frames utilizados la función free_frame se encargará de mantener la integridad, y no 
+se liberará un frame que estaba siendo referenciado por otro proceso.
+
+g)
+No hace falta, ya que si se amplía el espacio lógico se alloqueará un frame el cuál no estará compartido por otro proceso 
+(como mucho por otros threads, aunque clone + sbrk creo que no es compatible). Si posteriormente se pasa a compartir (por un fork),
+el mismo ya se encargará de hacer el COW y compartirlo adecuadamente, pero a la función sbrk no le afecta para nada.
+
+
+
+
+
+
+
+2-
+
+a)
+P1 se bloqueará. Se insertará al final de la keyboardqueue (puede ser que ya hubiera otro proceso bloqueado en ella). 
+(Si no había otro proceso se insertará al principio/final ya que es lo mismo)
+
+b)
+P2 se bloqueará. Se insertará detrás de P1 en la keyboardqueue.
+
+c)
+list_add() inserta blocked_process (el cual debería de ser P1 si no había otro proceso antes en la readyqueue) al principio de
+la ready_queue, y se pasará a ejecutar a continuación ya que sched_next_rr() escoge al primer proceso en la ready_queue.
+El problema que parece haber en esta implementación es que el proceso que ha sido interrumpido por la última interrupción de teclado (P3, P4, o idle_task)
+no volverá a recuperar la CPU, lo cuál es muy grave en el caso de P3 y P4. Esto se debe a que no es insertado en la ready_queue de nuevo
+por lo que el scheduler no lo seleccionará nunca.

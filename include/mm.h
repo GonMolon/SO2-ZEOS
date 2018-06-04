@@ -39,7 +39,11 @@ void setTSS();
 void set_ss_pag(page_table_entry* PT, unsigned page, unsigned frame);
 void del_ss_pag(page_table_entry* PT, unsigned page);
 int is_ss_pag_free(page_table_entry* PT, unsigned page);
-unsigned int get_frame(page_table_entry* PT, unsigned int page); 
+unsigned int get_frame(page_table_entry* PT, unsigned int page);
+
+void set_ro_page(page_table_entry* PT, unsigned page);
+void share_cow_page(page_table_entry* tp_source, page_table_entry* tp_dest, unsigned num_pag_log);
+
 int get_heap_page_size(void* heap_top);
 
 int allocate_DIR(struct task_struct* task);

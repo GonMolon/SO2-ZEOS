@@ -9,6 +9,7 @@
 #include <sched.h>
 
 Byte phys_mem[TOTAL_PAGES];
+Byte cow_count_mem[TOTAL_PAGES];
 
 /* SEGMENTATION */
 /* Memory segements description table */
@@ -199,6 +200,7 @@ int init_frames(void) {
   /* Mark kernel pages as Used */
   for(i = 0; i < NUM_PAG_KERNEL; i++) {
     phys_mem[i] = USED_FRAME;
+    cow_count_mem[i] = 0;
   }
   return 0;
 }
@@ -210,6 +212,7 @@ int alloc_frame(void) {
   for(i = NUM_PAG_KERNEL; i < TOTAL_PAGES;) {
     if(phys_mem[i] == FREE_FRAME) {
       phys_mem[i] = USED_FRAME;
+      cow_count_mem[i] = 0;
       return i;
     }
     i += 2; /* NOTE: There will be holes! This is intended. 
@@ -237,7 +240,10 @@ void free_user_pages(struct task_struct* task) {
 /* free_frame - Mark as FREE_FRAME the frame  'frame'.*/
 void free_frame(unsigned int frame) {
   if((frame > NUM_PAG_KERNEL) && (frame < TOTAL_PAGES))
-    phys_mem[frame] = FREE_FRAME;
+    --cow_count_mem[frame]; // It doesn't matter if it goes to a negative value because it will be set to zero the next time the frame is allocated 
+    if(cow_count_mem[frame] <= 0) { 
+      phys_mem[frame] = FREE_FRAME;
+    }
 }
 
 /* set_ss_pag - Associates logical page 'page' with physical page 'frame' */
@@ -247,6 +253,17 @@ void set_ss_pag(page_table_entry* PT, unsigned page, unsigned frame) {
 	PT[page].bits.user = 1;
 	PT[page].bits.rw = 1;
 	PT[page].bits.present = 1;
+}
+
+void set_ro_page(page_table_entry* PT, unsigned page) {
+  PT[page].bits.rw = 0;
+}
+
+void share_cow_page(page_table_entry* tp_source, page_table_entry* tp_dest, unsigned num_pag_log) {
+  unsigned int frame = get_frame(tp_source, num_pag_log);
+  set_ss_pag(tp_dest, num_pag_log, frame);
+  set_ro_page(tp_source, num_pag_log);
+  set_ro_page(tp_dest, num_pag_log);
 }
 
 int is_ss_pag_free(page_table_entry* PT, unsigned page) {

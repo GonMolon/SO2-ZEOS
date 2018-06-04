@@ -78,21 +78,6 @@ int sys_fork() {
     TASK_UNION(task)->stack[stack_pos] = (DWord) &ret_from_fork;
     task->kernel_esp = (DWord) &TASK_UNION(task)->stack[stack_pos - 1];
 
-    int NUM_PAG_HEAP = get_heap_page_size(current()->heap_top);
-    // Finding free frames to store (data+stack)+heap
-    int data_frames[NUM_PAG_DATA + NUM_PAG_HEAP];
-    for(int i = 0; i < NUM_PAG_DATA + NUM_PAG_HEAP; ++i) {
-        int new_frame = alloc_frame();
-        if(new_frame == -1) {
-            // Free-ing reserved frames since we don't have enought for the child
-            for(int j = 0; j < i; ++j) {
-                free_frame(data_frames[j]);
-            }
-            return -ENOMEM;
-        }
-        data_frames[i] = new_frame;
-    }
-
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%
     // CODE
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -107,34 +92,25 @@ int sys_fork() {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     for(int i = 0; i < NUM_PAG_DATA; ++i) {
-        int from_page = PAG_LOG_INIT_DATA + i;
-        int to_page = PAG_LOG_INIT_HEAP + 1 + i;
-        // Data pages point to new frames
-        set_ss_pag(get_PT(task), from_page, data_frames[i]);
-        // Augmenting logical address space of father temporarly to copy data
-        set_ss_pag(get_PT(current()), to_page, data_frames[i]);
-        // Copying data
-        copy_data((void*) (from_page*PAGE_SIZE), (void*) (to_page*PAGE_SIZE), PAGE_SIZE);
-        // Reverting previous step after having copied data
-        del_ss_pag(get_PT(current()), to_page);
+        unsigned int page = PAG_LOG_INIT_DATA + i;
+        share_cow_page(get_PT(current()), get_PT(task), page);
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%
     // HEAP
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+    int NUM_PAG_HEAP = get_heap_page_size(current()->heap_top);
     for(int i = 0; i < NUM_PAG_HEAP; ++i) {
-        int from_page = PAG_LOG_INIT_HEAP - i;
-        int to_page = PAG_LOG_INIT_HEAP + 1 + NUM_PAG_DATA + i;
-        set_ss_pag(get_PT(task), from_page, data_frames[NUM_PAG_DATA + i]);
-        set_ss_pag(get_PT(current()), to_page, data_frames[NUM_PAG_DATA + i]);
-        copy_data((void*) (from_page*PAGE_SIZE), (void*) (to_page*PAGE_SIZE), PAGE_SIZE);
-        del_ss_pag(get_PT(current()), to_page);
+        unsigned int page = PAG_LOG_INIT_HEAP - i;
+        share_cow_page(get_PT(current()), get_PT(task), page);
     }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     // Flush TLB
+    // If a page wasn't shared before and it was in the TLB, there would be rw permissions cached there.
+    // If after fork and before task_switch, it performs a write operation in that page, there wouldn't a page fault!
     set_cr3(get_DIR(current()));
 
     // Adding process to ready_queue
