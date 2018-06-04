@@ -242,7 +242,7 @@ void free_user_pages(struct task_struct* task) {
 void free_frame(unsigned int frame) {
   if((frame > NUM_PAG_KERNEL) && (frame < TOTAL_PAGES))
     --cow_count_mem[frame]; // It doesn't matter if it goes to a negative value because it will be set to zero the next time the frame is allocated 
-    if(cow_count_mem[frame] <= 0) { 
+    if(((signed char) cow_count_mem[frame]) <= 0) { 
       phys_mem[frame] = FREE_FRAME;
     }
 }
